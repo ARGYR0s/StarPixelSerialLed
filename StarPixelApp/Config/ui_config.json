@@ -1,0 +1,160 @@
+{
+  "pages": [
+    {
+      "name": "MainPage",
+      "controls": [
+        {
+          "type": "Label",
+          "id": "labelMain",
+          "text": "Отображение LED панелей через serial",
+          "fontSize": 20,
+          "width": 500,
+          "height": 300,
+          "backgroundcolor": "#FF0000",
+          "x": 10,
+          "y": 20
+        },
+        {
+          "type": "Button",
+          "id": "",
+          "text": "Настройки",
+          "action": "OpenSettings",
+          "backgroundColor": "#FF0000",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "x": 10,
+          "y": 100
+        },
+        {
+          "type": "Canvas",
+          "id": "canvas1",
+          "backgroundColor": "#FF0000",
+          "width": 800,
+          "height": 104,
+          "x": 300,
+          "y": 300
+        },
+        {
+          "type": "Label",
+          "id": "readyFrames",
+          "text": "Ready frames: ",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "backgroundcolor": "#FF0000",
+          "x": 300,
+          "y": 250
+        },
+        {
+          "type": "Label",
+          "id": "labelFps",
+          "text": "FPS",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "backgroundcolor": "#FF0000",
+          "x": 900,
+          "y": 250
+        },
+        {
+          "type": "Label",
+          "id": "frames",
+          "text": "Frames",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "backgroundcolor": "#FF0000",
+          "x": 600,
+          "y": 250
+        }
+      ]
+    },
+    {
+      "name": "SecondPage",
+      "controls": [
+        {
+          "type": "Label",
+          "id": "",
+          "text": "Вторая страница!",
+          "backgroundColor": "#FF0000",
+          "fontSize": 20,
+          "width": 100,
+          "height": 50,
+          "x": 10,
+          "y": 20
+        },
+        {
+          "type": "Button",
+          "id": "",
+          "text": "Открыть окно",
+          "action": "OpenWindow",
+          "backgroundColor": "#FF0000",
+          "fontSize": 20,
+          "width": 100,
+          "height": 50,
+          "x": 10,
+          "y": 60
+        },
+        {
+          "type": "Button",
+          "id": "",
+          "text": "Неизвестная функция",
+          "action": "UnknownMethod",
+          "backgroundColor": "#FF0000",
+          "fontSize": 20,
+          "width": 100,
+          "height": 50,
+          "x": 10,
+          "y": 100
+        }
+      ]
+    },
+    {
+      "name": "SerialConfig",
+      "controls": [
+        {
+          "type": "Label",
+          "id": "",
+          "text": "Настройки Serial",
+          "fontSize": 26,
+          "width": 500,
+          "height": 60,
+          "x": 10,
+          "y": 20
+        },
+        {
+          "type": "CheckList",
+          "id": "сomCheckList",
+          "action": "ActionSerialList",
+          "width": 300,
+          "height": 500,
+          "x": 10,
+          "y": 80
+        },
+        {
+          "type": "Button",
+          "id": "",
+          "text": "Обновить список",
+          "action": "OpenSettings",
+          "backgroundColor": "#FF0000",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "x": 10,
+          "y": 300
+        }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "connectionType",
+      "value": "Serial"
+    },
+    {
+      "key": "deviceId",
+      "value": "COM4"
+    }
+  ]
+}

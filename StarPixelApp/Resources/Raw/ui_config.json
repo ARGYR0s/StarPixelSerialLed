@@ -1,0 +1,82 @@
+{
+  "pages": [
+    {
+      "name": "MainPage",
+      "controls": [
+        {
+          "type": "Label",
+          "id": "",
+          "text": "Добро пожаловать!",
+          "position": {
+            "x": 10,
+            "y": 20
+          }
+        },
+        {
+          "type": "Button",
+          "id": "",
+          "text": "Открыть окно",
+          "action": "OpenWindow",
+          "position": {
+            "x": 10,
+            "y": 60
+          }
+        },
+        {
+          "type": "Button",
+          "id": "",
+          "text": "Вторая страница",
+          "action": "OpenSecondPage",
+          "position": {
+            "x": 10,
+            "y": 100
+          }
+        }
+      ]
+    },
+    {
+      "name": "SecondPage",
+      "controls": [
+        {
+          "type": "Label",
+          "id": "",
+          "text": "Вторая страница!",
+          "position": {
+            "x": 10,
+            "y": 20
+          }
+        },
+        {
+          "type": "Button",
+          "id": "",
+          "text": "Открыть окно",
+          "action": "OpenWindow",
+          "position": {
+            "x": 10,
+            "y": 60
+          }
+        },
+        {
+          "type": "Button",
+          "id": "",
+          "text": "Неизвестная функция",
+          "action": "UnknownMethod",
+          "position": {
+            "x": 10,
+            "y": 100
+          }
+        }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "connectionType",
+      "value": "USB"
+    },
+    {
+      "key": "deviceId",
+      "value": "0x01"
+    }
+  ]
+}
