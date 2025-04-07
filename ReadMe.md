@@ -1,3 +1,17 @@
+The application is written in .NET MAUI.
+
+![Alt text](./StarPixelApp/Resources/Images/main.png?raw=true "Main picture")
+
+![Alt text](./StarPixelApp/Resources/Images/settings.png?raw=true "Settings")
+
+It is required that the application can connect via a saved communication channel (Bluetooth, USB, virtual, etc.) to a saved device. If the connection fails or this is the first launch, the user must be provided with a choice of the required connection type and a display of available devices for that connection type. From the provided list of devices, connection should be possible.
+
+For implementing possible connection types, the Hexagonal (Ports and Adapters) architectural pattern is used. Connections are created from a single interface.
+
+The application operates based on the Event-Driven Architecture (EDA) principle combined with MVVM.
+
+For flexibility, XAML is not used in Views; instead, pages are loaded from JSON. This JSON file also stores application parameters (connection type and device for connection). Pages and parameters are then stored in memory and are not reloaded from the file. This allows modifying the application's appearance without recompiling the application itself. The JSON is read during application startup or when initializing the parameter loading function from the file. Each UI element can have an ID. If data with a specified ID is received via the communication channel, such elements are updated with this data.
+
 Приложение написано на .NET MAUI.
 
 Приложение для отправки через Serial данных в плату данных изображения, для отображения на панели
