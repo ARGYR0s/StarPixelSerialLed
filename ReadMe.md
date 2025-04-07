@@ -1,9 +1,8 @@
 The application is written in .NET MAUI.
 
-![Alt text](./StarPixelApp/Resources/Images/main.png?raw=true "Title")
+![Alt text](./StarPixelApp/Resources/Images/main.png?raw=true "Main picture")
 
-
-![plot](./StarPixelApp/Resources/Images/main.png)
+![Alt text](./StarPixelApp/Resources/Images/settings.png?raw=true "Settings")
 
 It is required that the application can connect via a saved communication channel (Bluetooth, USB, virtual, etc.) to a saved device. If the connection fails or this is the first launch, the user must be provided with a choice of the required connection type and a display of available devices for that connection type. From the provided list of devices, connection should be possible.
 
