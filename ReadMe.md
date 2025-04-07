@@ -1,7 +1,5 @@
 The application is written in .NET MAUI.
 
-D:\WORK\StarPixel\Project\Android\StarPixelSerialLed\StarPixelApp\Resources\Images
-
 ![Alt text](./StarPixelApp/Resources/Images/main.png?raw=true "Title")
 
 
