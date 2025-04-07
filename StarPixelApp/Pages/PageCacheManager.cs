@@ -33,8 +33,6 @@ public class PageCacheManager
 
         var pageConfig = JsonSerializer.Deserialize<PageConfig>(json, options);
 
-        //var pageConfig = JsonSerializer.Deserialize<PageConfig>(json);
-
         if (pageConfig?.Pages != null)
         {
             foreach (var pageItem in pageConfig.Pages)
@@ -70,33 +68,6 @@ public class PageCacheManager
     {
         return _cachedSettings.TryGetValue(settingKey, out var value) ? value : null;
     }
-    /*
-    public async Task UpdateSetting(string key, string value)
-    {
-        string json = await File.ReadAllTextAsync(_jsonPath);
-
-        var options = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true // Для форматирования JSON с отступами
-        };
-
-        var pageConfig = JsonSerializer.Deserialize<PageConfig>(json, options);
-
-        var setting = pageConfig.Settings.FirstOrDefault(s => s.Key == key);
-        if (setting != null)
-        {
-            setting.Value = value;
-        }
-        else
-        {
-            pageConfig.Settings.Add(new SettingConfig { Key = key, Value = value });
-        }
-
-        json = JsonSerializer.Serialize(pageConfig, options);
-        await File.WriteAllTextAsync(_jsonPath, json);
-    }
-    */
 
     public async Task UpdateSetting(string key, string value)
     {

@@ -41,11 +41,9 @@ namespace StarPixelApp
             //string jsonPath = Path.Combine(FileSystem.AppDataDirectory, "Config\\ui_config.json");
             string jsonPath = "Config\\ui_config.json";
             _pageCacheManager = new PageCacheManager(jsonPath);
-            //_pageCacheManager.LoadPagesAsync();
+
             _pageLoader = new DynamicPageLoader(_pageCacheManager);
 
-            //MainPage = new NavigationPage(new DynamicPage("MainPage"));
-            //MainPage = new NavigationPage(_pageLoader.GetPageView("main"));
             // Не устанавливаем MainPage сразу, ждем завершения загрузки данных
             MainPage = new NavigationPage(new ContentPage()); // Временная страница-заглушка
 
@@ -89,51 +87,22 @@ namespace StarPixelApp
                 {
                     isDeviceFound = true;
                 }
-                //_pageLoader.AddCheckListItem("ComCheckList", device.Name, "control" + icontrol);
-                //icontrol++;
+
             }
 
             if (isDeviceFound)
             {
-
-                //connect serial
-                //_connectionManager = new ConnectionManager(connectionType, deviceId);
-                //_connectionManager.ConnectAsync().Wait();
-
-                //_connectionManager.ConnectAsync();
-
                 ConnectionTry(deviceId);
-                /*
-                // После загрузки данных обновляем MainPage
-                if (_connectionManager.IsConnected)
-                {
-                    UpdateMainPage();
-                }
-                else
-                {
-                    _pageLoader.ClearCheckLists();
-                    MainPage = new NavigationPage(_pageLoader.GetPageView("SerialConfig"));
-                    //_pageLoader.AddCheckListItem("ComCheckList", "Новый элемент", "control1");
 
-                    //string savedConnectionType = Preferences.Get(ConnectionTypeKey, "USB");
-
-                    //            var connection = Connections.ConnectionFactory.CreateConnection("Virtual"); // Можно менять на USB
-                    //var connection = Connections.ConnectionFactory.CreateConnection(connectionType);                                  //----
-                    //var connection = Connections.ConnectionFactory.CreateConnection("Bluetooth"); // Можно менять на USB
-                    //_deviceService = new Services.DeviceService(connectionType, deviceId);
-                    //_discoveryService = new Services.DeviceDiscoveryService((Connections.IDeviceDiscovery)connection);
-
-                    await ShowDevicesAsync();
-                }*/
             }
             else
             {
                 _pageLoader.ClearCheckLists();
-                //MainPage = new NavigationPage(_pageLoader.GetPageView("SerialConfig"));
+
                 NavigateToPage("SerialConfig");
-                //await ShowDevicesAsync();
+
             }
-            //MainPage = new NavigationPage(_pageLoader.GetPageView("main"));
+
         }
 
 
@@ -160,19 +129,8 @@ namespace StarPixelApp
 
         private void UpdateUI()
         {
-
-
-            // Вызываем обновление элементов UI через DataBus
-            //_serialReceiver.ProcessDataExternally();
-
-            //stopwatch.Stop();
-            //long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-            //AsyncEventBus.Publish("labelTime", "labelTime: " + elapsedMilliseconds.ToString());
-           //Debug.WriteLine($"labelTime: {elapsedMilliseconds.ToString()}");
-
             _serialReceiver.ScreenUpdater();
-            //stopwatch.Reset(); // Сбрасываем счетчик
-            //stopwatch.Start();
+
         }
 
         public async Task ConnectionTry(string address)
@@ -192,13 +150,9 @@ namespace StarPixelApp
             }
 
             _connectionManager = new ConnectionManager(connectionType, address);
-            //_connectionManager.ConnectionStatusChanged += OnConnectionStatusChanged; // Подписка на события
 
             try
             {
-                //Debug.WriteLine($"Перед подключением: IsConnected={_connectionManager?.IsConnected}");
-
-
                 bool connected = await _connectionManager.ConnectAsync();
 
                 await Task.Delay(500); // Даем время обновить состояние
@@ -207,7 +161,7 @@ namespace StarPixelApp
                 {
                     Debug.WriteLine("Подключение удалось!");
                     _pageCacheManager.UpdateSetting("deviceId", address);
-                    //UpdateMainPage();
+
                     NavigateToPage("MainPage");
                 }
                 else
@@ -219,20 +173,6 @@ namespace StarPixelApp
                     //await ShowDevicesAsync();
                 }
 
-                /*
-                if (_connectionManager.IsConnected)
-                {
-                    _pageCacheManager.UpdateSetting("deviceId", address);
-                    UpdateMainPage();
-                }
-                else
-                {
-                    _pageLoader.ClearCheckLists();
-                    MainPage = new NavigationPage(_pageLoader.GetPageView("SerialConfig"));
-
-                    await ShowDevicesAsync();
-                }
-                */
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -257,19 +197,9 @@ namespace StarPixelApp
             {
 
                 _pageLoader.AddCheckListItem("сomCheckList", device.Address, "control"+icontrol);
-                //_pageLoader.CreateCheckListItems("сomCheckList", device.Address, "control" + icontrol);
+
                 icontrol++;
             }
-            /*
-            if (devices.Count < 1)
-            {
-                _pageLoader.AddCheckListItem("ComCheckList", "Нет устройств", "control1");
-                // Формируем строку с устройствами для отображения
-                //var deviceList = string.Join(Environment.NewLine, devices.Select(d => $"{d.Name}"));
-                //await Application.Current.MainPage.DisplayAlert("USB Devices", deviceList, "OK");
-            }
-            */
-
         }
 
         public async Task <IEnumerable<string>> GetDevices()
@@ -288,20 +218,9 @@ namespace StarPixelApp
             if (!isConnected)
             {
                 _pageLoader.ClearCheckLists();
-                //_pageLoader.IsPagePushed = true;
-                //MainPage = new NavigationPage(_pageLoader.GetPageView("SerialConfig"));
                 NavigateToPage("SerialConfig");
-                //await ShowDevicesAsync();
-            }
-            /*
-            Debug.WriteLine($"Статус соединения изменился: {(isConnected ? "Подключено" : "Отключено")}");
 
-            if (!isConnected)
-            {
-                Debug.WriteLine("Соединение потеряно, пробуем переподключиться...");
-                Task.Run(async () => await ConnectionTry(lastUsedAddress)); // Повторное подключение
             }
-            */
         }
 
         private void UpdateMainPage()
@@ -310,34 +229,7 @@ namespace StarPixelApp
             // Устанавливаем основную страницу после загрузки данных
             MainPage = new NavigationPage(_pageLoader.GetPageView("MainPage"));
 
-            /*
-            // Создаем новый путь (линия)
-            var path = new SKPath();
-            path.MoveTo(50, 50);
-            path.LineTo(150, 150);
-
-            var command = new ViewModels.DrawCommand(path, SKColors.Red); // Рисуем красную линию
-
-            EventBus.Publish("canvas1", command);
-            */
-            /*
-            List<(int X, int Y, SKColor Color)> squarePixels = new();
-            int startX = 10, startY = 10, size = 20;
-            SKColor color = SKColors.Red;
-
-            // Заполняем массив пикселями для квадрата
-            for (int x = startX; x < startX + size; x++)
-            {
-                for (int y = startY; y < startY + size; y++)
-                {
-                    squarePixels.Add((x, y, color));
-                }
-            }
-
-            // Отправляем пиксели на EventBus
-            EventBus.Publish("canvas1", squarePixels);
-            */
-        }
+         }
         
         public static void NavigateToPage(string pageId)
         {
@@ -383,37 +275,6 @@ namespace StarPixelApp
             }
         }
        
-/*        
-        public static void NavigateToPage(string pageId) // с очисткой от подписок только которых нет на следующей странице
-        {
-            _pageLoader.IsPagePushed = true;
-            if (Current.MainPage is NavigationPage navPage && navPage.CurrentPage is ContentPage currentPage)
-            {
-                var oldAutomationIds = GetAllAutomationIds(currentPage);
-                var newPage = _pageLoader.GetPageView(pageId);
-                if (newPage != null)
-                {
-                    var newAutomationIds = GetAllAutomationIds(newPage);
-                    //-----UnsubscribeFromObsoleteEvents(currentPage, newAutomationIds);
-                    UnsubscribeNotUsed(oldAutomationIds, newAutomationIds);
-                    (Current.MainPage as NavigationPage)?.PushAsync(newPage);
-                }
-            }
-        }
-
-        // Функция для отписки от устаревших подписок
-        private static void UnsubscribeNotUsed(HashSet<string> oldIds, HashSet<string> newIds)
-        {
-            foreach (var id in oldIds)
-            {
-                if (!newIds.Contains(id)) // Если элемента нет на новой странице — отписываемся
-                {
-                    AsyncEventBus.UnsubscribeId(id);
-                    Debug.WriteLine($"Отписались: {id}");
-                }
-            }
-        }
-*/
         private static HashSet<string> GetAllAutomationIds(ContentPage page)
         {
             var ids = new HashSet<string>();
@@ -444,36 +305,6 @@ namespace StarPixelApp
 
             return ids;
         }
-        /*
-        private static void UnsubscribeFromObsoleteEvents(ContentPage page, HashSet<string> newAutomationIds)
-        {
-            void UnsubscribeRecursive(View view)
-            {
-                if (view == null) return;
-
-                if (!string.IsNullOrEmpty(view.AutomationId) && !newAutomationIds.Contains(view.AutomationId))
-                {
-                    AsyncEventBus.UnsubscribeId(view.AutomationId);
-                }
-
-                if (view is Layout layout)
-                {
-                    foreach (var child in layout.Children)
-                    {
-                        UnsubscribeRecursive(child as View);
-                    }
-                }
-            }
-
-            if (page.Content is Layout rootLayout)
-            {
-                foreach (var child in rootLayout.Children)
-                {
-                    UnsubscribeRecursive(child as View);
-                }
-            }
-        }
-        */
-
+ 
     }
 }
