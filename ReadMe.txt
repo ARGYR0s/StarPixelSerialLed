@@ -1,5 +1,12 @@
 The application is written in .NET MAUI.
 
+D:\WORK\StarPixel\Project\Android\StarPixelSerialLed\StarPixelApp\Resources\Images
+
+![Alt text](./StarPixelApp/Resources/Images/main.png?raw=true "Title")
+
+
+![plot](./StarPixelApp/Resources/Images/main.png)
+
 It is required that the application can connect via a saved communication channel (Bluetooth, USB, virtual, etc.) to a saved device. If the connection fails or this is the first launch, the user must be provided with a choice of the required connection type and a display of available devices for that connection type. From the provided list of devices, connection should be possible.
 
 For implementing possible connection types, the Hexagonal (Ports and Adapters) architectural pattern is used. Connections are created from a single interface.
