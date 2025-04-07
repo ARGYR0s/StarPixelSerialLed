@@ -16,7 +16,6 @@ namespace StarPixelApp.Connections
 
         private SerialPort _serialPort;
 
-        //private Thread? _readThread;
         private CancellationTokenSource? _cts;
 
         private readonly byte[] _buffer = new byte[1024]; // Фиксированный буфер
@@ -24,9 +23,6 @@ namespace StarPixelApp.Connections
 
         public async Task<bool> ConnectAsync(string portName)
         {
-            //Console.WriteLine($"Connecting to COM port {portName}...");
-            //_serialPort = new SerialPort(portName, 500000, Parity.None, 8, StopBits.One);
-
             _serialPort = new SerialPort(portName, 500000, Parity.None, 8, StopBits.One)
             {
                 ReadBufferSize = 124000, // Увеличение буфера чтения

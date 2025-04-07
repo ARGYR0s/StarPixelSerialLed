@@ -52,62 +52,7 @@ namespace StarPixelApp.Models
             STRIP_X0E = 0x0E,
             STRIP_X0F = 0x0F
         };
-        /*
-                public static List<(int X, int Y, SKColor Color)> ReadPxlFramedList(
-                    List<byte> array, int offsetArray, byte size_x, byte size_y,
-                    format_color_t color_pxl, format_strip_t strip, float brightnessBoostCoeff)
-                {
-                    var pixelList = new List<(int X, int Y, SKColor Color)>();
 
-                    int offset = 0;
-
-                    for (int i = offsetArray + 1; i < (size_x * size_y * 3) + offsetArray; i += 3)
-                    {
-                        byte color1 = array[i];
-                        byte color2 = array[i + 1];
-                        byte color3 = array[i + 2];
-
-                        ApplyBrightnessBoost(ref color1, ref color2, ref color3, brightnessBoostCoeff);
-
-                        int pos_x, pos_y;
-
-                        switch (strip)
-                        {
-                            case format_strip_t.STRIP_LINE:
-                                pos_x = (offset % size_x);
-                                pos_y = (offset / size_x);
-                                break;
-
-                            case format_strip_t.STRIP_ZIGZAG:
-                                pos_x = (offset / size_y);
-                                pos_y = (pos_x % 2 == 0) ? (offset % size_y) : (size_y - (offset % size_y) - 1);
-                                break;
-
-                            default:
-                                pos_x = 0;
-                                pos_y = 0;
-                                break;
-                        }
-
-                        if (pos_x < size_x && pos_y < size_y)
-                        {
-                            SKColor color = color_pxl switch
-                            {
-                                format_color_t.COLOR_RGB => new SKColor(color1, color2, color3),
-                                format_color_t.COLOR_RGBA => new SKColor(color1, color2, color3),
-                                format_color_t.COLOR_GRBA => new SKColor(color2, color1, color3),
-                                _ => SKColors.Transparent
-                            };
-
-                            pixelList.Add((pos_x, pos_y, color));
-                        }
-
-                        offset++;
-                    }
-
-                    return pixelList;
-                }
-        */
         public static List<(int X, int Y, SKColor Color)> ReadPxlFramedList(
             List<byte> array, int offsetArray, byte size_x, byte size_y,
             format_color_t color_pxl, format_strip_t strip, float brightnessBoostCoeff)

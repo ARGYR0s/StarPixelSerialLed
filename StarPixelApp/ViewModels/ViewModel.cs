@@ -12,20 +12,12 @@ using System.Diagnostics;
 //{
 class ViewModel
     {
-        //private static SerialReceiver _serialReceiver = new SerialReceiver();
-
+        
         public ViewModel()
         {
-        //EventBus.Subscribe("ButtonClicked", OnButtonClicked);
-        AsyncEventBus.Subscribe <string> ("сheckListChanged", OnCheckListChanged);
-//        AsyncEventBus.Subscribe<byte[]>("deviceDataReceived", SeriaReceived);
 
-        //new GridCanvasView(16, 128);
-        //new GridCanvasView();
-        //_serialReceiver = new SerialReceiver();
-            //_serialReceiver.ScreenUpdater();
-            //Task.Run(() => _serialReceiver.ScreenUpdater());
-    }
+        AsyncEventBus.Subscribe <string> ("сheckListChanged", OnCheckListChanged);
+        }
 
 
         private void OnButtonClicked(object buttonId)
@@ -60,43 +52,17 @@ class ViewModel
         private async void SeriaReceived(object data)
         {
 
-            // Создаем экземпляр Stopwatch
-            //Stopwatch stopwatch = new Stopwatch();
-
-            //stopwatch.Reset(); // Сбрасываем счетчик
-            //stopwatch.Start();
-
-        //Application.Current.MainPage.DisplayAlert("Оповещение", data.ToString(), "OK");
-        //++dataUpdated;
-        //EventBus.Publish("labelMain", "Data Updated "+ dataUpdated.ToString());
-
         if (data is byte[] bytes)
             {
                 // Преобразование байтов в строку с использованием UTF-8
                 string text = Encoding.UTF8.GetString(bytes);
-
-            // Увеличение счетчика обновлений
-            //++dataUpdated;
-
-            // Публикация обновленного текста для отображения в Label
-            //EventBus.Publish("labelMain", $"{dataUpdated}: {text}");
-
-            //AsyncEventBus.Publish("labelSerial", "labelSerial: " + text);
-            Debug.WriteLine($"labelSerial: {text}");
-        }
-            else
-            {
-                //Console.WriteLine("Error: Expected byte[] data, but received: " + data.GetType().Name);
+                Debug.WriteLine($"labelSerial: {text}");
             }
-
-            //stopwatch.Stop();
-
-            //long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-            //EventBus.Publish("labelTime", elapsedMilliseconds.ToString());
         }
 
         public static async Task OpenWindow()
         {
+            //test window
             //await Application.Current.MainPage.DisplayAlert("Оповещение", "Окно открыто!", "OK");
             //new MainViewModel();
 
@@ -104,22 +70,13 @@ class ViewModel
 
         public static async Task OpenSecondPage()
         {
-        //var secondPage = new DynamicPage("SecondPage");
-        //await Application.Current.MainPage.Navigation.PushAsync(secondPage);
-            //await App.NavigateToPage("SecondPage");
             StarPixelApp.App.NavigateToPage("SecondPage");
         }
 
         public static async Task OpenSettings()
         {
-            //var secondPage = new DynamicPage("SecondPage");
-            //await Application.Current.MainPage.Navigation.PushAsync(secondPage);
-            //await App.NavigateToPage("SecondPage");
+
             StarPixelApp.App.NavigateToPage("SerialConfig");
-        /*
-            StarPixelApp.App app = (StarPixelApp.App)Application.Current;
-            await app.ShowDevicesAsync();
-        */
         }
 
         public static async Task ActionSerialList(StackLayout checkList, string action, string serialAddr)

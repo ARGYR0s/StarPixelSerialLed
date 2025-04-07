@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35818.85 d17.13
+VisualStudioVersion = 17.13.35818.85
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarPixelApp", "StarPixelApp\StarPixelApp.csproj", "{E1E0D5BD-7DBD-41BA-AD88-E45157229CA2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarPixelSerialController", "StarPixelApp\StarPixelSerialController.csproj", "{E1E0D5BD-7DBD-41BA-AD88-E45157229CA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

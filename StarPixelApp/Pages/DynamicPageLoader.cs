@@ -29,8 +29,6 @@ public class DynamicPageLoader
     {
         var pageData = _pageCacheManager.GetPage(pageId);
 
-        //if (pageData == null) return null;
-
         if (pageData == null)
         {
             var page404 = new ContentPage { Title = "404" };
@@ -40,12 +38,6 @@ public class DynamicPageLoader
 
         var page = new ContentPage { Title = pageData.Name };
         var absoluteLayout = new AbsoluteLayout();
-        /*{
-            WidthRequest = 400, // Минимальная ширина
-            HeightRequest = 800, // Минимальная высота
-            IsVisible = true,
-            Opacity = 1
-        };*/
 
 
         // Обработчик событий при открытии страницы
@@ -69,22 +61,12 @@ public class DynamicPageLoader
         page.Disappearing += (s, e) =>
         {
             // Код, который выполняется при закрытии страницы
-            Debug.WriteLine($"Страница {pageId} закрыта");
+            //Debug.WriteLine($"Страница {pageId} закрыта");
             // Небольшая задержка перед проверкой стека
-            //await Task.Delay(200);
 
             // Можно отписаться от событий или выполнить другие действия
         };
-        /*
-        //проверка, что страница была создана, а не переход назад
-        page.BindingContext = this; // Привязка контекста, если нужно
-        page.PropertyChanged += (s, e) => {
-            if (e.PropertyName == "IsPagePushed" && IsPagePushed)
-            {
-                Debug.WriteLine("Страница была добавлена через PushAsync");
-            }
-        };
-        */
+
         // Если вам нужно удостовериться, что страница была именно добавлена через PushAsync
 
 
@@ -137,17 +119,6 @@ public class DynamicPageLoader
                     WidthRequest = control.Width ?? -1, // -1 означает, что размер будет определяться автоматически
                     HeightRequest = control.Height ?? -1
                 };
-           
-                /*
-                AsyncEventBus.Subscribe(control.Id, async data =>
-                {
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        Debug.WriteLine($"Получены данные label: {data}");
-                        label.Text = data.ToString();
-                    });
-                });
-                */
                 
                 Action<object> labelHandler = data =>
                 {
@@ -158,11 +129,8 @@ public class DynamicPageLoader
                     });
                 };
                 AsyncEventBus.Subscribe(control.Id, labelHandler);
-                //_eventHandlers[control.Id] = labelHandler; // Сохранение обработчика
-                //_eventHandlers[control.Id] = labelHandler; // Сохраняем для отписки
-                //EventBus.Subscribe(control.Id, data => label.Text = data.ToString());
                 view = label;
-                //return label;
+
                 break;
                 
 
@@ -232,9 +200,6 @@ public class DynamicPageLoader
                 canvasView.PaintSurface += renderer.OnPaintSurface;
 
 
-                // Запускаем асинхронную отрисовку с целевой частотой кадров (например, 60 fps)
-                //Task.Run(() => renderer.StartRenderingAsync(targetFps: 60)); // Можно вызвать с нужной частотой кадров
-
                 AsyncEventBus.Subscribe<List<(int X, int Y, SKColor Color)>>(control.Id, async data =>
                 {
                     MainThread.BeginInvokeOnMainThread(() =>
@@ -252,11 +217,6 @@ public class DynamicPageLoader
                             }
                         }
 
-                        // Останавливаем таймер и выводим время выполнения
-                        //stopwatch.Stop();
-                        //long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-
-                        //EventBus.Publish("labelSerialTime", elapsedMilliseconds.ToString());
                     });
                 });
                 //_eventHandlers[control.Id] = labelHandler; // Сохранение обработчика
@@ -289,33 +249,6 @@ public class DynamicPageLoader
                 view = stackLayout;
                 break;
 
-            /*
-                        case "Menu":
-                            var menuItem = new MenuBarItem
-                            {
-                                Text = control.Text
-                            };
-
-                           //if (control.MenuItems != null)
-                            {
-                                //foreach (var subItemConfig in control.MenuItems)
-                                {
-                                    var subItem = CreateMenuFlyoutItem(control);
-                                    //if (subItem != null)
-                                    {
-                                        menuItem.Add(subItem);
-                                    }
-                                }
-                            }
-
-                            view = menuItem;
-                            break;
-
-                        case "MenuItem":
-                            var menuFlyoutItem = CreateMenuFlyoutItem(control);
-                            view = menuFlyoutItem;
-                            break;
-                            */
             default:
                 return null;
         }
@@ -328,7 +261,7 @@ public class DynamicPageLoader
                 view.Margin = new Thickness(control.Margin.Left ?? 0, control.Margin.Top ?? 0, control.Margin.Right ?? 0, control.Margin.Bottom ?? 0);
             }
             /*
-             * //непонятно почему свойство недоступно
+             * //свойство недоступно
             if (control.Padding != null)
             {
                 view.Padding = new Thickness(control.Padding.Left ?? 0, control.Padding.Top ?? 0, control.Padding.Right ?? 0, control.Padding.Bottom ?? 0);
@@ -342,13 +275,10 @@ public class DynamicPageLoader
             // Установка позиции (X, Y) для AbsoluteLayout
             if (control.X != null && control.Y != null)
             {
-                //double x = Math.Clamp(control.X.Value, 0, 400); // Ограничение X
-                //double y = Math.Clamp(control.Y.Value, 0, 800); // Ограничение Y
                 double x = control.X.Value; // Ограничение X
                 double y = control.Y.Value; // Ограничение Y
                 double width = control.Width ?? view.WidthRequest;
                 double height = control.Height ?? view.HeightRequest;
-
 
                 AbsoluteLayout.SetLayoutBounds(view, new Rect(x, y, width, height));
                 AbsoluteLayout.SetLayoutFlags(view, AbsoluteLayoutFlags.None);
@@ -419,27 +349,6 @@ public class DynamicPageLoader
         //int itemNumber = 1;
         foreach (var itemText in items)
         {
-            /*
-            var itemLayout = new StackLayout
-            {
-                Orientation = StackOrientation.Horizontal,
-                Children =
-                {
-                    new CheckBox
-                    {
-                        //AutomationId = $"{id}_Item{itemNumber}",
-                        IsChecked = false,
-                        VerticalOptions = LayoutOptions.Center
-                    },
-                    new Label
-                    {
-                        Text = itemText,
-                        VerticalOptions = LayoutOptions.Center,
-                        Margin = new Thickness(5, 0, 0, 0)
-                    }
-                }
-            };
-            */
             var checkBox = new CheckBox
             {
                 IsChecked = false,
@@ -493,32 +402,11 @@ public class DynamicPageLoader
                     {
                         await Application.Current.MainPage.DisplayAlert("Ошибка", ex.Message, "OK");
                     }
-                    //AsyncEventBus.Publish(controlId, new { Item = item, IsChecked = e.Value });
-                    //AsyncEventBus.Publish("сheckListChanged", item);
+
                     Debug.WriteLine("CheckList action");
                 };
             }
             checkList.Children.Add(itemLayout);
-
-
-
-            /*
-            var tapGesture = new TapGestureRecognizer();
-            tapGesture.Tapped += (s, e) =>
-            {
-                //AsyncEventBus.Publish("сheckListChanged", item);
-            };
-            itemLayout.GestureRecognizers.Add(tapGesture);
-
-            itemLayout.Children.checkBox.CheckedChanged += (s, e) =>
-            {
-                //AsyncEventBus.Publish(controlId, new { Item = item, IsChecked = e.Value });
-                //AsyncEventBus.Publish("сheckListChanged", item);
-            };
-            
-            checkList.Children.Add(itemLayout);
-            //itemNumber++;
-            */
         }
     }
 

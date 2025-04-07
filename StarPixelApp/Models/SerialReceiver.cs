@@ -82,15 +82,6 @@ namespace StarPixelApp.Models
                     return val;
                 if (char.IsDigit((char)data[i]))
                     val = (val * 10) + (data[i] - '0');
-                /*if (data[i] == DEV_AT)//если запятая то параметр готов
-                    return val;
-                else if (data[i] == END_ATr) //если \r то параметр готов, осталось получить \n
-                    isATrWas = 1;
-                if ((data[i] == END_ATn) && (isATrWas == 1)) //получили \n выводим значение
-                    return val;
-                else if (isATrWas == 0)
-                    val = (val * 10) + (data[i] - '0');
-                */
             }
             return -1;
         }
@@ -129,66 +120,6 @@ namespace StarPixelApp.Models
         }
 
 
-        /*
-                private async void SeriaReceived(object data)
-                {
-
-                    //Stopwatch stopwatch = new Stopwatch();
-                    //stopwatch.Reset(); // Сбрасываем счетчик
-                    //stopwatch.Start();
-                    //if (!serialPort.IsOpen) return;
-                    try
-                    {
-                        if (data is byte[] bytes)
-                        {
-                            // Преобразование байтов в строку с использованием UTF-8
-                            //string text = Encoding.UTF8.GetString(bytes);
-
-                            //int dataLength = serialPort.BytesToRead;
-                            //byte[] buffer = new byte[dataLength];
-                            //int bytesRead = await Task.Run(() => serialPort.Read(buffer, 0, dataLength));
-                            //if (bytesRead == 0) return;
-
-                            //процесс удаления обработанных данных
-                            if (dataBuf.Count >= posProcessedData) //защита 
-                            {
-                                ++iSerialUpd;
-                                relocateBuf.AddRange(dataBuf.Skip(posProcessedData));
-                                posProcessedData = 0;
-                                dataBuf.Clear();
-                                //dataBuf.TrimExcess(); // Освобождает память, занятую внутренним массивом
-                                dataBuf.AddRange(dataBuf);
-                                relocateBuf.Clear();
-                                //relocateBuf.TrimExcess(); // Освобождает память, занятую внутренним массивом
-                            }
-                            dataBuf.AddRange(bytes);
-                            ++iSerialUpd;
-
-                            //AsyncEventBus.Publish("labelSerialBufferSize", "labelSerialBufferSize"+ dataBuf.Count);
-                            Debug.WriteLine($"SerialBufferSize: {dataBuf.Count}");
-                            //frames.AddFrame(GenerateFrameImage(128, 16, 10, 10));
-                            // Уведомляем, что данные обновились
-                            //_dataReceivedSignal?.TrySetResult(true);
-                            //ProcessData();
-                        }
-                        else
-                        {
-                            //Console.WriteLine("Error: Expected byte[] data, but received: " + data.GetType().Name);
-                            Debug.WriteLine("Error: Expected byte[] data, but received: " + data.GetType().Name);
-                        }
-
-                    }
-                    catch (Exception ex)
-                    {
-                        //Console.WriteLine($"Error: {ex.Message}");
-                        Debug.WriteLine($"Error: {ex.Message}");
-                    }
-                    //stopwatch.Stop();
-                    //long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-                    //EventBus.Publish("labelTime", elapsedMilliseconds.ToString());
-                }
-        
-        */
         private const int BufferSize = 1048576; // Размер буфера
         private readonly byte[] buffer = new byte[BufferSize];
         private int head = 0; // Начало данных
@@ -389,124 +320,20 @@ namespace StarPixelApp.Models
 
         public async Task ProcessDataExternally()
         {
-            //while (!isAtFind)
-            {
-                //_dataReceivedSignal = new TaskCompletionSource<bool>();
-                //await _dataReceivedSignal.Task;
-
-                ProcessData();
-//                frames.AddFrame(GenerateFrameImage(128, 16, 10, 10));
-                /*
-                List<(int X, int Y, SKColor Color)> imageSerial;
-                imageSerial = GenerateFrame(128, 16, 10, 10);
-                //imageSerial = GenerateFrame(400,52,25,25);
-
-                //imageSerial = ScalePixelsToCanvas(imageSerial, 400, 52);
-
-                //stopwatch.Stop();
-                //stopwatch.Start();
-                EventBus.Publish("canvas1", imageSerial);
-                */
-
-            }
-
-            // Убираем повторный вызов ProcessData(), чтобы обработка происходила по одному кадру за вызов
+            ProcessData();
         }
-        /*
-                private void ProcessData()
-                {
-                    Stopwatch stopwatch1 = new Stopwatch();
-                    //stopwatch.Reset(); // Сбрасываем счетчик
-                    stopwatch1.Start();
-                    // Создаем экземпляр Stopwatch
-                    //Stopwatch stopwatch = new Stopwatch();
-
-                    // Запускаем таймер
-                    //stopwatch.Start();
-                    uint valCounterOnStart = iSerialUpd;
-                    ReadOnlySpan<byte> spanData = dataBuf.ToArray();
-
-                    if (!isAtFind)
-                    {
-                        posAt = GetAtPosEnd(spanData, posProcessedData);
-                        isAtFind = posAt > -1;
-                    }
-
-                    if (isAtFind && !isAtParam)
-                    {
-                        ProcessAtParams(spanData);
-                    }
-
-                    if (isAtParam && !isAtReady)
-                    {
-                        int requiredSize = (scrWidth * scrHeight * SCR_COLOR_SIZE);
-                        //isAtReady = scrDataSize == requiredSize;
-                        if (scrDataSize == requiredSize)
-                        {
-
-                            isAtReady = true;
-
-
-                        }
-                        else
-                        {
-
-
-                            //int posNextFrame = posAtEnd;//(scrWidth * scrHeight * SCR_COLOR_SIZE) + posAtColor;
-                            //if (dataBuf.Count <= posNextFrame * 100) //защита от переполнения буфера на 100 кадров
-                            {
-
-                                //pixelBuf.AddRange(dataBuf.GetRange(posAtColor, requiredSize));
-
-
-                            }
-
-                        }
-                    }
-
-                    if (isAtReady && valCounterOnStart == iSerialUpd)
-                    {
-                        ProcessImageData();
-                        posProcessedData = posAtEnd;
-
-
-
-                        //EventBus.Publish("labelSerialNumAt", CalcAt(spanData, posProcessedData).ToString());
-                    }
-                    else if (posAtEnd >= 0 && valCounterOnStart == iSerialUpd)
-                    {
-                        posProcessedData = posAtEnd;
-                    }
-
-                    ResetState();
-
-                    // Останавливаем таймер
-                    //stopwatch.Stop();
-
-                    // Получаем время в миллисекундах
-                    //long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-                    //EventBus.Publish("labelSerialTime", elapsedMilliseconds.ToString());
-                    stopwatch1.Stop();
-                    long elapsedMilliseconds = stopwatch1.ElapsedMilliseconds;
-                    //Debug.WriteLine("labelSerialTime - Sent");
-                    //EventBus.Publish("labelSerialTime", "labelSerialTime: "+(elapsedMilliseconds+1).ToString());
-                    //Debug.WriteLine($"labelSerialTimeAsync: {elapsedMilliseconds}");
-                }
-        */
+  
         //чтоб не пересматривать весь массив, ищем только в возможных 3 кадрах
         const int SERIAL_FRAME_SIZE = 3*16*128*3; //18 432 = 3 фрагмента 16 строк 128 столбцов по 3 байта на цвет
         int lastSizeBuf;
         int commandFound;
         public async void ProcessData()
         {
-            //Stopwatch stopwatch = Stopwatch.StartNew();
-            //Debug.WriteLine("_______________________________________________START_____________________________________________");
+
             byte[] bufferCopy;
             int bufferSize;
             int localProcessedData;
-            //frames.AddFrame(GenerateFrameImage(128, 16, 10, 10));
-            //Debug.WriteLine($"Count: {count}");
-            //Debug.WriteLine($"lastSizeBuf: {lastSizeBuf}");
+
 
             lock (bufferLock)
             {
@@ -534,91 +361,31 @@ namespace StarPixelApp.Models
             {
                 posAt = GetAtPosEnd(spanData, 0);
 
-                // Путь к файлу (можно настроить)
-                //string logFilePath = "SerialDataHex_ProcessData.txt";
-
-                //byte[] bufferAnswer;
-                //bufferAnswer = new byte[1];
-
                 if (posAt > -1)
                 {
-                    //frames.AddFrame(GenerateFrameImage(128, 16, 10, 10));
                     isAtFind = true;
-                    //Debug.WriteLine("isAtFind = first");
                     commandFound++;
-                    //Debug.WriteLine($"commandFound: {commandFound}");
-                    //bufferAnswer[0] = 0xFF;
+
                 }
-                /*else 
-                {
-                    Debug.WriteLine("isAtFind = false");
-                    //bufferAnswer[0] = 0x00;
-                    // Сохраняем данные в hex-формате в файл
-
-                }*/
-                //SaveHexToFile(bufferAnswer, logFilePath);
-
-                // Сохраняем данные в hex-формате в файл
-                //SaveHexToFile(bufferCopy, logFilePath);
-                /*
-                Debug.WriteLine("___________________________________________________________________________________");
-                // Извлекаем подмодуль ReadOnlySpan<byte> с нужной позиции
-                if (posAt >= 0 && posAt + 8 <= spanData.Length)
-                {
-                    ReadOnlySpan<byte> substringSpan = spanData.Slice(posAt, 8);
-
-                    // Преобразуем в строку с помощью UTF-8
-                    string result = Encoding.UTF8.GetString(substringSpan);
-
-                    // Выводим в Debug
-                    Debug.WriteLine(result); // Выведет "world"
-                }
-
-                Debug.WriteLine("___________________________________________________________________________________");
-                */
             }
-
 
             if (isAtFind && !isAtParam)
             {
                 ProcessAtParams(spanData);
-                //Debug.WriteLine("isAtParam");
             }
-            /*
-            if (isAtParam && !isAtReady)
-            {
-                int requiredSize = scrWidth * scrHeight * SCR_COLOR_SIZE;
-                if (scrDataSize == requiredSize)
-                {
-                    isAtReady = true;
 
-                }
-                Debug.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++scrDataSize: " + scrDataSize);
-            }
-            */
-            //if (isAtReady)
             if (isAtParam)
             {
                 ProcessImageData(spanData);
                 localProcessedData = posAtEnd; // Все данные обработаны
-                //Debug.WriteLine("isAtParam = true");
             }
-            /*
-                        else if (posAtEnd >= 0)
-                        {
-                            localProcessedData = posAtEnd; // данные до перевода строки обработаны
-                            Debug.WriteLine("___________________________________________________________________________________");
-                        }
-            */
             else if (isCorruptedAtParam)
             {
                 localProcessedData = posAtEnd;
-                //Debug.WriteLine("Param Corrupted!");
             }
             else if (bufferSize >= SERIAL_FRAME_SIZE)
             {
                 localProcessedData = bufferSize;
-                //Debug.WriteLine("isAtParam = false, bufferSize >= SERIAL_FRAME_SIZE");
             }
 
             if (localProcessedData > 0)
@@ -629,11 +396,7 @@ namespace StarPixelApp.Models
                     count -= localProcessedData; // Уменьшаем количество данных
                                                  //posProcessedData = 0; // Сбрасываем, так как обработали все
                 }
-                //Debug.WriteLine($"size changed!: {count}");
             }
-
-            //stopwatch.Stop();
-            //Debug.WriteLine($"labelSerialTimeAsync: {stopwatch.ElapsedMilliseconds}");
 
             ResetState();
 
@@ -655,11 +418,9 @@ namespace StarPixelApp.Models
             {
                 scrColor = GetAtOffsetParam(spanData, posAtHeight);
                 posAtColor = GetParamOffset(spanData, posAtHeight);
-                //isAtParam = posAtColor > 0;
             }
             if (posAtColor > 0)
             {
-                //Debug.WriteLine("99999999999999999999999999999999999999999999999999999999999999");
                 int requiredSize = scrWidth * scrHeight * SCR_COLOR_SIZE;
                 if (spanData.Length > (requiredSize + posAtColor+1))
                 {
@@ -667,41 +428,15 @@ namespace StarPixelApp.Models
                     {
                         isAtParam = true;
                         
-                        //Debug.WriteLine("ProcessAtParams: END_ATn find!!!");
                     }
                     else
                     {
                         isCorruptedAtParam = true;
                     }
                     posAtEnd = posAtColor + requiredSize + 1;
-                    /*
-                        Debug.WriteLine("ProcessAtParams: size checked!");
-                    
-                        ReadOnlySpan<byte> substringSpan = spanData.Slice(posAtColor + requiredSize-1, 3);
 
-                        // Преобразуем в строку с помощью UTF-8
-                        //string result = Encoding.UTF8.GetString(substringSpan);
-                    string result = Convert.ToHexString(substringSpan);
-
-                    // Выводим в Debug
-                    Debug.WriteLine("posAtColor: " + result); // Выведет "world"
-                    */
-
-                    //Debug.WriteLine("55555555555555555555555555555555555555555555555555");
                 }
-
-                //posAtEnd = GetParamOffset(spanData, posAtColor);
-                //scrDataSize = posAtEnd - posAtColor - 1 ;
-                //AsyncEventBus.Publish("labelSize", "labelSize: "+scrDataSize);
-                //Debug.WriteLine($"labelSize: {scrDataSize}");
             }
-            /*
-            if (posAtEnd > 0)
-//            if (posAtColor > 0)
-            {
-                isAtParam = true;
-            }
-            */
         }
 
         private void ProcessBuffer() 
@@ -721,21 +456,6 @@ namespace StarPixelApp.Models
         int counter1;
         private void ProcessImageData(ReadOnlySpan<byte> spanData)
         {
-            // Создаем экземпляр Stopwatch
-            //Stopwatch stopwatch = new Stopwatch();
-
-            // Запускаем таймер
-            //stopwatch.Start();
-            //int counterFirst = frames.Count;
-/*
-            int sizeFrame = (scrWidth * scrHeight * SCR_COLOR_SIZE);
-
-            List<byte> pixelData = new List<byte>(sizeFrame);
-            pixelData.AddRange(dataBuf.GetRange(posAtColor + 1, sizeFrame));
-
-            frames.AddFrame(new ImageData(pixelData, scrWidth, scrHeight));
-*/
-
             int sizeFrame = scrWidth * scrHeight * SCR_COLOR_SIZE;
 
 
@@ -746,72 +466,8 @@ namespace StarPixelApp.Models
             List<byte> pixelData = new List<byte>(sizeFrame);
             pixelData.AddRange(subSpan.ToArray()); // Преобразуем span в массив и добавляем в список
 
-            // Копируем данные из buffer в List<byte>
-
-            //List<byte> pixelData = spanData.Skip(posAtColor+1).Take(sizeFrame).ToList();
-
             // Добавляем кадр
             frames.AddFrame(new ImageData(pixelData, scrWidth, scrHeight));
-            //AsyncEventBus.Publish("labelSizeImageBuf", "labelSizeImageBuf: " + frames.Count);
-
- //для теств в буфер генерация
- //          framesSerial.AddFrame(GenerateFrameImage(128, 16, 10, 10));
-
-            //frames.Add(new ImageData(pixelData, scrWidth, scrHeight));
-
-            /*
-            if (counterFirst < frames.Count)
-            {
-                counter1++;
-            }*/
-            //EventBus.Publish("labelSerialNumAt", counter1);
-
-            /*
-            int posNextFrame = posAtEnd;//(scrWidth * scrHeight * SCR_COLOR_SIZE) + posAtColor;
-            if (dataBuf.Count <= posNextFrame * 100) //защита от переполнения буфера на 100 кадров
-            {
-                relocateBuf.AddRange(dataBuf.Skip(posNextFrame));
-            }
-            */
-            //stopwatch.Start();
-            /*Stopwatch stopwatch = new Stopwatch();
-            //stopwatch.Reset(); // Сбрасываем счетчик
-            stopwatch.Start();
-            */
-            /*
-                        List<(int X, int Y, SKColor Color)> imageSerial = ReadPxlFramedList(
-                            dataBuf, posAtColor, (byte)scrWidth, (byte)scrHeight,
-                            format_color_t.COLOR_GRBA, format_strip_t.STRIP_ZIGZAG, 10);
-
-                        //imageSerial = ScalePixelsToCanvas(imageSerial, 400, 52);
-
-                        //stopwatch.Stop();
-                        //stopwatch.Start();
-                        EventBus.Publish("canvas1", imageSerial);
-            */
-
-            /*
-            stopwatch.Stop();
-            long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-            EventBus.Publish("labelSerialTime", elapsedMilliseconds.ToString());
-            */
-            //stopwatch.Stop();
-            /*
-            // Удаляем обработанные данные и освобождаем память
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(dataBuf.Count);
-            dataBuf.CopyTo(buffer, 0);
-            // Обработка данных
-            ArrayPool<byte>.Shared.Return(buffer);
-            dataBuf = new List<byte>();
-            */
-            //ResetState();
-
-            // Останавливаем таймер
-            //stopwatch.Stop();
-
-            // Получаем время в миллисекундах
-            //long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-            //EventBus.Publish("labelSerialTime", elapsedMilliseconds.ToString());
         }
 
 
@@ -821,56 +477,15 @@ namespace StarPixelApp.Models
             isAtFind = isAtParam = isAtReady = isCorruptedAtParam = false;
             scrWidth = scrHeight = scrColor = 0;
             posAt = posAtWidth = posAtHeight = posAtColor = posAtEnd = scrDataSize = - 1;
-            //dataBuf.Clear();
-            //Debug.WriteLine("________________________________________________END______________________________________________");
         }
 
         int frameCnt;
         public async Task ScreenUpdater()
         {
-            // Создаем экземпляр Stopwatch
-//            Stopwatch stopwatchTime = new Stopwatch();
-
-//генерировать тестовый кадр для отправки
-/*
-                        List<(int X, int Y, SKColor Color)> imageSerial;
-            imageSerial = GenerateFrame(128, 16, 10, 10);
-            //imageSerial = GenerateFrame(400,52,25,25);
-            AsyncEventBus.Publish("canvas2", imageSerial);
-*/
-//            stopwatchTime.Start();
-/*
-//генерировать тестовый кадр через буфер 
-            var firstFrame = framesSerial.GetFrame();
-            if (firstFrame != null)
-            {
-                List<(int X, int Y, SKColor Color)> pixelData = ConvertToPixelList(firstFrame);
-                
-                AsyncEventBus.Publish("canvas1", pixelData);
-            }
-//            frames.AddFrame(GenerateFrameImage(128, 16, 10, 10));
-*/
-//            stopwatch.Stop();
-//            long elapsedMilliseconds = stopwatchTime.ElapsedMilliseconds;
-            //EventBus.Publish("labelTime", elapsedMilliseconds.ToString());
-
-            //AsyncEventBus.Publish("labelSerialNumAt", "labelSerialNumAt: " + elapsedMilliseconds.ToString());
-            //Debug.WriteLine($"labelSerialNumAt: {elapsedMilliseconds.ToString()}");
-
             AsyncEventBus.Publish("readyFrames", $"Ready frames: {framesSerial.Count}");
-            //imageSerial = ScalePixelsToCanvas(imageSerial, 400, 52);
-            //Debug.WriteLine($"readyFrames: {elapsedMilliseconds.ToString()}");
-            //stopwatch.Stop();
-            //stopwatch.Start();
-            //EventBus.Publish("canvas1", imageSerial);
-
-
-
-            //if (frames.Count == 0) return;
 
             frameCnt++;
 
-            //int framesCnt = frames.Count();
             var firstFrame = frames.GetFrame();
 
             if (firstFrame != null)
@@ -881,66 +496,7 @@ namespace StarPixelApp.Models
                 AsyncEventBus.Publish("canvas1", imageSerial2);
             }
 
-            /*
-            List<(int X, int Y, SKColor Color)> imageSerial = ReadPxlFramedList(
-                    firstFrame.PixelData, 0, (byte)firstFrame.Width, (byte)firstFrame.Height,
-                    format_color_t.COLOR_GRBA, format_strip_t.STRIP_ZIGZAG, 10);
-            */
-
-
-            /*
-                var copiedFrames = frames.GetRange(1, frames.Count - 1);
-
-                frames.Clear();
-
-                frames.AddRange(copiedFrames);
-            */
-
-            // Оптимизация работы с коллекцией
-            //frames.RemoveAt(0);
-
-            //if (framesCnt> frames.Count())
-            
-
-                //EventBus.Publish("labelSerialNumAt", counter1);
-
-
-            
-
             AsyncEventBus.Publish("frames", "frames: " + frameCnt);
-
-            //imageSerial = ScalePixelsToCanvas(imageSerial, 400, 52);
-
-            //stopwatch.Stop();
-            //stopwatch.Start();
-
-
-
-            /*
-            while (true)
-            {
-                
-                // Запускаем таймер
-                //stopwatch.Reset(); // Сбрасываем счетчик
-                //stopwatch.Start();
-                
-
-                //_dataReceivedSignal = new TaskCompletionSource<bool>();
-                //await _dataReceivedSignal.Task;
-                ProcessData();
-                await Task.Delay(1);
-
-                
-                //stopwatch.Stop();
-
-                //long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-                //EventBus.Publish("labelTime", elapsedMilliseconds.ToString());
-                
-            }
-            */
-
-            // Убираем повторный вызов ProcessData(), чтобы обработка происходила по одному кадру за вызов
-            // Получаем время в миллисекундах
 
         }
 

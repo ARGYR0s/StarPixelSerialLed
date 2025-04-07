@@ -11,7 +11,7 @@ namespace StarPixelApp.Connections
         Task<bool> ConnectAsync(string deviceId);
         Task DisconnectAsync();
         Task SendDataAsync(byte[] data);
-        //Task<byte[]> ReceiveDataAsync();
+        
         event Action<byte[]> DataReceived;
         bool IsConnected { get; }
     }
