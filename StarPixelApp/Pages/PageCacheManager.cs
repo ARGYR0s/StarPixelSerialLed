@@ -72,7 +72,7 @@ public class PageCacheManager
     public async Task UpdateSetting(string key, string value)
     {
         // Пропускаем обновление, если ключ или значение null/пустые
-        if (string.IsNullOrEmpty(key) || value == null)
+        if (string.IsNullOrEmpty(key) /*|| value == null*/)
         {
             return;
         }

@@ -84,7 +84,7 @@ namespace StarPixelApp.Connections
                     }
                     //else
                     {
-                        await Task.Delay(5, token); // Уменьшаем нагрузку на процессор
+                        //await Task.Delay(5, token); // Уменьшаем нагрузку на процессор
                     }
                 }
             }

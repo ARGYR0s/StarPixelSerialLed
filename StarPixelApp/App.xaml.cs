@@ -5,6 +5,12 @@ using Microsoft.Maui.Dispatching;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System;
+using System.Reflection.PortableExecutable;
+using System.Text;
+using Microsoft.Maui.Controls;
+using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks.Dataflow;
 
 //Install - Package Plugin.BLE
 
@@ -16,8 +22,9 @@ namespace StarPixelApp
     public partial class App : Application
     {
         private static ConnectionManager? _connectionManager;
-        private static PageCacheManager _pageCacheManager;
-        private static DynamicPageLoader _pageLoader;
+        private static PageCacheManager? _pageCacheManager;
+        private static DynamicPageLoader? _pageLoader;
+        private static RawFileCacheReader? _reader;
 
         private string connectionType;
         private string deviceId;
@@ -52,13 +59,15 @@ namespace StarPixelApp
             _uiUpdater.Interval = TimeSpan.FromMilliseconds(50);//(16); // 60 FPS
             _uiUpdater.Tick += (s, e) => UpdateUI();
             _uiUpdater.Start();
-
+/*            
             //StartLoop();
             _serialProcessing = Dispatcher.CreateTimer();
             _serialProcessing.Interval = TimeSpan.FromMilliseconds(5);//(16); // 60 FPS
             _serialProcessing.Tick += (s, e) => SerialProcessing();
             _serialProcessing.Start();
-
+*/
+            _reader = new RawFileCacheReader();
+            StartSerialProcessing();
             //Debug.WriteLine("DEBUG START!");
         }
 
@@ -109,8 +118,51 @@ namespace StarPixelApp
 
         Stopwatch stopwatch = new Stopwatch();
 
+        private CancellationTokenSource _cts = new();
+        private Task _processingTask;
+        //private readonly AutoResetEvent _dataAvailable = new(false);
+        //private readonly object bufferLock = new(); // если еще нет
+
+        public void StartSerialProcessing()
+        {
+            _processingTask = Task.Run(() => ProcessSerialData(_cts.Token));
+        }
+
+        public void StopSerialProcessing()
+        {
+            _cts.Cancel();
+            //_dataAvailable.Set();
+        }
+
+
+        // Создаем объект Stopwatch для измерения времени рендера
+        Stopwatch stopwatcSerial = new Stopwatch();
+
+
+        private async Task ProcessSerialData(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                if (_serialReceiver.isRequestUpdated || _serialReceiver.isDataAdded)
+                {
+
+                    stopwatcSerial.Restart();
+                    //stopwatcSerial.Start();
+                    // Подождать сигнал или timeout (вдруг пришло чуть-чуть данных)
+                    //_dataAvailable.WaitOne();
+                    //_serialReceiver.isRequestUpdated = false;
+                    await SerialProcessing(); //26ms
+                    stopwatcSerial.Stop();
+                    long elapsedMilliseconds = stopwatcSerial.ElapsedMilliseconds;
+                    _serialReceiver.isDataAdded = false;
+                }
+
+            }
+        }
+
         private void StartLoop()
         {
+            /*
             Task.Run(async () =>
             {
                 while (true)
@@ -119,12 +171,88 @@ namespace StarPixelApp
                     //await Task.Delay(1000); // Задержка 1 секунда, чтобы не перегружать процессор
                 }
             });
+            */
+            //if
         }
 
-        private void SerialProcessing()
+        private async Task SerialProcessing()
         {
+            //пересмотреть вызов, очень долгий
+            /*
+            byte[] data = {0x00, 0x01, 0x00};
+            _connectionManager.SendDataAsync(data);
+            */
+            /*
+            if (_serialReceiver.isUpdated)
+            {
+                _connectionManager.SendDataAsync(_serialReceiver.raw);
+                _serialReceiver.isUpdated = false;
+            }
+            */
+            string command2 = "+PXLS=2,0,0\n\n"; // или просто \n, зависит от устройства
+            byte[] data2 = Encoding.UTF8.GetBytes(command2);
 
-            _serialReceiver.ProcessData();
+            string command6 = "+PXLS=6,0,0\n\n"; // или просто \n, зависит от устройства
+            byte[] data6 = Encoding.UTF8.GetBytes(command6);
+
+            //_serialReceiver.ProcessData();
+            _serialReceiver.ProcessRequests();
+
+
+
+
+            if (_reader.isFileOpened && _serialReceiver.isRequestUpdated)
+            {
+                switch (_serialReceiver.requestCmd)
+                {
+                    case 1: //Открыть файл
+                    {
+                        _connectionManager.SendDataAsync(data2);
+                        break;
+                    }
+
+                    case 3: //Прочитать данные
+                    {
+                        // Читаем данные с нужным смещением и длиной
+                        int offset = _serialReceiver.requestOffset;
+                        int length = _serialReceiver.requestLength;
+
+                        byte[] chunk = await _reader.GetDataAsync(offset: offset, length: length);
+
+                        int actualLength = chunk.Length;
+
+                        // Формируем строку команды с указанием offset и length
+                        string command4 = $"+PXLS=4,{offset.ToString()},{actualLength.ToString()}\n";
+                        byte[] data4 = Encoding.UTF8.GetBytes(command4);
+                        string newLine = "\n";
+                        byte[] data5 = Encoding.UTF8.GetBytes(newLine);
+
+                            // Объединяем команду и chunk
+                        byte[] fullMessage = new byte[data4.Length + chunk.Length + 1];
+                        Buffer.BlockCopy(data4, 0, fullMessage, 0, data4.Length);
+                        Buffer.BlockCopy(chunk, 0, fullMessage, data4.Length, chunk.Length);
+                        Buffer.BlockCopy(data5, 0, fullMessage, data4.Length + chunk.Length, data5.Length);
+
+                        _connectionManager.SendDataAsync(fullMessage);
+                        break;
+                    }
+
+
+                    case 5: //Закрыть файл
+                    {
+
+                        _reader.Dispose();
+                        _connectionManager.SendDataAsync(data6);
+                        break;
+                    }
+
+                    default:
+                    {
+                        break;
+                    }
+                }
+                //_serialReceiver.isRequestUpdated = false;
+            }
         }
 
         private void UpdateUI()
@@ -220,6 +348,76 @@ namespace StarPixelApp
                 _pageLoader.ClearCheckLists();
                 NavigateToPage("SerialConfig");
 
+            }
+        }
+
+        public async Task<IEnumerable<string>> GetRecentFiles()
+        {
+            // Получаем список недавно открытых файлов
+            var recentFiles = new List<string>();
+
+            for (int i = 1; i <= 5; i++) // допустим, у вас 5 недавних файлов
+            {
+                string? file = _pageCacheManager.GetSetting($"recentFile{i}");
+                if (!string.IsNullOrEmpty(file))
+                {
+                    recentFiles.Add(file);
+                }
+            }
+
+            return recentFiles;
+        }
+
+        public async Task OpenTry(string path) 
+        {
+            //_pageCacheManager.UpdateSetting("recentFile1", path);
+            // Шаг 1: Получаем текущий список последних 10 файлов
+            var recentFiles = new List<string>();
+
+            _reader.SetFile(path);
+            //byte[] chunk = await _reader.GetDataAsync(offset: 1000, length: 512);
+            //_reader.Dispose();
+
+            for (int i = 1; i <= 5; i++)
+            {
+                string? file = _pageCacheManager.GetSetting($"recentFile{i}");
+                if (!string.IsNullOrEmpty(file))
+                {
+                    recentFiles.Add(file);
+                }
+            }
+
+            // Шаг 2: Удаляем путь, если он уже есть в списке (чтобы избежать дубликатов)
+            recentFiles.Remove(path);
+
+            // Шаг 3: Вставляем путь в начало списка
+            recentFiles.Insert(0, path);
+
+            // Шаг 4: Ограничиваем список до 10 элементов
+            if (recentFiles.Count > 5)
+            {
+                recentFiles = recentFiles.Take(5).ToList();
+            }
+
+            // Шаг 5: Сохраняем обновлённый список обратно в настройки
+            for (int i = 0; i < recentFiles.Count; i++)
+            {
+                _pageCacheManager.UpdateSetting($"recentFile{i + 1}", recentFiles[i]);
+            }
+            /*
+            // Шаг 6: Удаляем лишние ключи, если ранее было сохранено больше
+            for (int i = recentFiles.Count + 1; i <= 10; i++)
+            {
+                _pageCacheManager.UpdateSetting($"recentFile{i}", null);
+            }
+            */
+        }
+
+        public async Task ClearFilesConfig()
+        {
+            for (int i = 0; i <= 5; i++)
+            {
+                _pageCacheManager.UpdateSetting($"recentFile{i}", null);
             }
         }
 

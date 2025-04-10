@@ -27,6 +27,18 @@
           "y": 100
         },
         {
+          "type": "Button",
+          "id": "",
+          "text": "Open PXL",
+          "action": "OpenMedia",
+          "backgroundColor": "#00FF00",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "x": 10,
+          "y": 200
+        },
+        {
           "type": "Canvas",
           "id": "canvas1",
           "backgroundColor": "#00FF00",
@@ -34,6 +46,83 @@
           "height": 104,
           "x": 300,
           "y": 300
+        },
+        {
+          "type": "Label",
+          "id": "serialCmd",
+          "text": "CMD: ",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "backgroundcolor": "#00FF00",
+          "x": 300,
+          "y": 100
+        },
+        {
+          "type": "Label",
+          "id": "serialOffset",
+          "text": "Offset: ",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "backgroundcolor": "#00FF00",
+          "x": 300,
+          "y": 150
+        },
+        {
+          "type": "Label",
+          "id": "serialLength",
+          "text": "Length: ",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "backgroundcolor": "#00FF00",
+          "x": 300,
+          "y": 200
+        },
+        {
+          "type": "Label",
+          "id": "serialPxl",
+          "text": "PXLDraw: ",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "backgroundcolor": "#00FF00",
+          "x": 400,
+          "y": 150
+        },
+        {
+          "type": "Label",
+          "id": "serialDma",
+          "text": "DMADraw: ",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "backgroundcolor": "#00FF00",
+          "x": 400,
+          "y": 200
+        },
+        {
+          "type": "Label",
+          "id": "serialTimeTX",
+          "text": "UARTTX: ",
+          "fontSize": 20,
+          "width": 300,
+          "height": 50,
+          "backgroundcolor": "#00FF00",
+          "x": 600,
+          "y": 150
+        },
+        {
+          "type": "Label",
+          "id": "serialTimeRX",
+          "text": "UARTRX: ",
+          "fontSize": 20,
+          "width": 300,
+          "height": 50,
+          "backgroundcolor": "#00FF00",
+          "x": 600,
+          "y": 200
         },
         {
           "type": "Label",
@@ -145,6 +234,54 @@
           "y": 300
         }
       ]
+    },
+    {
+      "name": "BrowseFiles",
+      "controls": [
+        {
+          "type": "Label",
+          "id": "",
+          "text": "Recent Files:",
+          "fontSize": 26,
+          "width": 500,
+          "height": 60,
+          "x": 10,
+          "y": 20
+        },
+        {
+          "type": "CheckList",
+          "id": "filesCheckList",
+          "action": "ActionFileList",
+          "width": 900,
+          "height": 1000,
+          "x": 10,
+          "y": 80
+        },
+        {
+          "type": "Button",
+          "id": "",
+          "text": "Выбрать файл",
+          "action": "BrowseFile",
+          "backgroundColor": "#00FF00",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "x": 10,
+          "y": 350
+        },
+        {
+          "type": "Button",
+          "id": "",
+          "text": "Очистить список",
+          "action": "ClearListFiles",
+          "backgroundColor": "#00FF00",
+          "fontSize": 20,
+          "width": 200,
+          "height": 50,
+          "x": 10,
+          "y": 410
+        }
+      ]
     }
   ],
   "settings": [
@@ -154,7 +291,7 @@
     },
     {
       "key": "deviceId",
-      "value": "COM4"
+      "value": "COM2"
     }
   ]
 }

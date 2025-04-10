@@ -122,6 +122,7 @@ public class ConnectionManager
             {
                 if (_isConnected)
                 {
+                    /*
                     Console.WriteLine("Sending ping...");
                     byte[] pingData = { 0x00, 0x00 };
                     await _connection.SendDataAsync(pingData);
@@ -140,6 +141,7 @@ public class ConnectionManager
                         Console.WriteLine("Pong not received, connection lost");
                         await HandleReconnectionAsync();
                     }
+                    */
                 }
             }
             catch (Exception ex)
@@ -204,6 +206,8 @@ public class ConnectionManager
 
     private void OnDataReceived(byte[] data)
     {
+        //byte[] data1 = { 0x00, 0x01, 0x00 };
+        //SendDataAsync(data);
         //Console.WriteLine($"Получены данные: {data}");
         AsyncEventBus.Publish("deviceDataReceived", data);
     }

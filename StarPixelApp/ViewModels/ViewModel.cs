@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using StarPixelApp.ViewModels;
 using StarPixelApp.Models;
 using System.Diagnostics;
+using Microsoft.Maui.Storage;
 //using static CoreFoundation.DispatchSource;
 
 //namespace StarPixelApp.ViewModels
@@ -22,6 +23,7 @@ class ViewModel
 
         private void OnButtonClicked(object buttonId)
         {
+        /*
             switch (buttonId.ToString())
             {
                 case "OpenWindow":
@@ -33,13 +35,23 @@ class ViewModel
                 case "UpdateDevices":
                     UpdateDevices();
                     break;
+                case "OpenMedia":
+                    OpenMedia();
+                    break;
+                case "BrowseFile":
+                    BrowseFile();
+                    break;
+                case "ClearListFiles":
+                    ClearListFiles();
+                    break;
                 case "GoBack":
                     GoBack();
                     break;
                 default:
-                    Console.WriteLine($"Неизвестная кнопка: {buttonId}");
+                    Debug.WriteLine($"Неизвестная кнопка: {buttonId}");
                     break;
             }
+        */
         }
 
         private async void OnCheckListChanged(string item)
@@ -106,6 +118,69 @@ class ViewModel
         public static async void UpdateDevices()
         {
             StarPixelApp.App.NavigateToPage("SecondPage");
+        }
+
+        public static async void OpenMedia()
+        {
+        //StarPixelApp.App.NavigateToPage("SecondPage");
+            StarPixelApp.App.NavigateToPage("BrowseFiles");
+            //StarPixelApp.App.NavigateToPage("MainPage");
+        }
+
+        public static async Task ActionFileList(StackLayout checkList, string action, string fileAddr)
+        {
+            Debug.WriteLine("ActionFileList");
+            if (fileAddr == null) //инициализация
+            {
+                StarPixelApp.App app = (StarPixelApp.App)Application.Current;
+                //await app.ShowDevicesAsync();
+                DynamicPageLoader.CreateCheckListItems(checkList, action, await app.GetRecentFiles());
+                Debug.WriteLine("ActionFileList Init list");
+            }
+            else //действия по нажатию
+            {
+                StarPixelApp.App app = (StarPixelApp.App)Application.Current;
+                app.OpenTry(fileAddr);
+                //StarPixelApp.App.NavigateToPage("BrowseFiles");
+                StarPixelApp.App.NavigateToPage("MainPage");
+                Debug.WriteLine("Action RecentFile" + fileAddr);
+            }
+        }
+
+        public static async void BrowseFile()
+        {
+            //StarPixelApp.App.NavigateToPage("SecondPage");
+            //StarPixelApp.App.NavigateToPage("BrowseFiles");
+            var pxlFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                { DevicePlatform.Android, new[] { ".pxl" } },
+                { DevicePlatform.iOS, new[] { "public.data" } }, // или другой UTI, если знаешь точный
+                { DevicePlatform.MacCatalyst, new[] { ".pxl" } },
+                { DevicePlatform.WinUI, new[] { ".pxl" } }
+            });
+
+            var fileResult = await FilePicker.PickAsync(new PickOptions
+            {
+                PickerTitle = "Выберите файл .pxl",
+                FileTypes = pxlFileType
+            });
+
+            if (fileResult != null)
+            {
+                //_gifPath = fileResult.FullPath;
+                StarPixelApp.App app = (StarPixelApp.App)Application.Current;
+                app.OpenTry(fileResult.FullPath);
+                Debug.WriteLine("Action OpenFile" + fileResult.FullPath);
+                //StarPixelApp.App.NavigateToPage("BrowseFiles");
+                StarPixelApp.App.NavigateToPage("MainPage");
+            }
+        }
+
+        public static async void ClearListFiles()
+        {
+            StarPixelApp.App app = (StarPixelApp.App)Application.Current;
+            app.ClearFilesConfig();
+            StarPixelApp.App.NavigateToPage("BrowseFiles");
         }
 
         public static async void GoBack()

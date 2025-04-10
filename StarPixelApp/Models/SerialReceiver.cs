@@ -6,11 +6,13 @@ using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using SkiaSharp;
 using StarPixelApp.Models;
 using static System.Net.Mime.MediaTypeNames;
+
 //using static CoreFoundation.DispatchSource;
 using static StarPixelApp.Models.PxlReader;
 
@@ -18,10 +20,17 @@ namespace StarPixelApp.Models
 {
     public class SerialReceiver
     {
+        public int requestCmd;
+        public int requestOffset;
+        public int requestLength;
+
+        public bool isRequestUpdated;
+
         private const char DEV_AT = ',';
         private const char END_ATr = '\r';
         private const char END_ATn = '\n';
         private static readonly byte[] PXL_AT_STR = Encoding.ASCII.GetBytes("+PXL=");
+        private static readonly byte[] PXL_AT_STREAM_STR = Encoding.ASCII.GetBytes("+PXLS=");
         private const int SCR_COLOR_SIZE = 3;
 
         private List<byte> dataBuf = new();
@@ -86,7 +95,7 @@ namespace StarPixelApp.Models
             return -1;
         }
 
-        private static int GetAtPosEnd(ReadOnlySpan<byte> data, int offset)
+        private static int GetAtPosEnd(ReadOnlySpan<byte> data, int offset, ReadOnlySpan<byte> atCommand)
         {
             //int index = data.IndexOf(PXL_AT_STR,  10);
             // Проверка, что offset находится в пределах длины data
@@ -95,9 +104,9 @@ namespace StarPixelApp.Models
                 return -1;
             }
 
-            int index = data.Slice(offset).IndexOf(PXL_AT_STR);
+            int index = data.Slice(offset).IndexOf(atCommand);
 
-            return index >= 0 ? index + offset + PXL_AT_STR.Length : -1;
+            return index >= 0 ? index + offset + atCommand.Length : -1;
 
         }
 
@@ -124,7 +133,10 @@ namespace StarPixelApp.Models
         private readonly byte[] buffer = new byte[BufferSize];
         private int head = 0; // Начало данных
         private int tail = 0; // Конец данных (новые данные записываются сюда)
+                              // Публичное свойство только для чтения
+
         private int count = 0; // Количество байтов в буфере
+        public int DataLength => count;
         private readonly object bufferLock = new();
 
         private void SaveHexToFile(byte[] data, string filePath)
@@ -141,6 +153,25 @@ namespace StarPixelApp.Models
             }
         }
 
+        int prevUARTRX1 = 0;
+        int prevUARTTX1 = 0;
+
+        static Dictionary<string, Queue<int>> timeHistory = new();
+
+        static void AddValue(string name, int value)
+        {
+            if (!timeHistory.ContainsKey(name))
+                timeHistory[name] = new Queue<int>();
+
+            var queue = timeHistory[name];
+
+            queue.Enqueue(value);
+            if (queue.Count > 5)
+                queue.Dequeue();
+        }
+
+        public bool isDataAdded = false;
+        public byte[] raw = new byte[10];
         private async void SeriaReceived(object data)
         {
             try
@@ -148,11 +179,55 @@ namespace StarPixelApp.Models
                 if (data is byte[] bytes)
                 {
 
+                    //Array.Copy(bytes, 10, raw, 0, 10);
                     // Путь к файлу (можно настроить)
                     //string logFilePath =  "SerialDataHex_250322.txt";
 
                     // Сохраняем данные в hex-формате в файл
                     //SaveHexToFile(bytes, logFilePath);
+
+                    string result = System.Text.Encoding.ASCII.GetString(bytes);
+
+
+                    var matches = Regex.Matches(result, @"\+(?<name>\w+)\s+time:\s+(?<time>\d+)");
+
+                    foreach (Match match in matches)
+                    {
+                        string name = match.Groups["name"].Value;
+                        int time = int.Parse(match.Groups["time"].Value);
+                        if (name == "PXLDraw")
+                        {
+                            AsyncEventBus.Publish("serialPxl", $"PXLDraw: {time}");
+                        }
+                        if (name == "DMADraw")
+                        {
+                            AsyncEventBus.Publish("serialDma", $"DMADraw: {time}");
+                        }
+                        if (name == "UARTTX")
+                        {
+                            //AsyncEventBus.Publish("serialTimeTX", $"serialTimeTX: {time}");
+                            AddValue(name, time);
+                            string values = "";
+                            foreach (var kvp in timeHistory)
+                            {
+                                values = string.Join(" ", kvp.Value);
+                                
+                            }
+                            AsyncEventBus.Publish("serialTimeTX", $"serialTimeTX: {values}");
+                        }
+                        if (name == "UARTRX")
+                        {
+                            AddValue(name, time);
+                            string values = "";
+                            foreach (var kvp in timeHistory)
+                            {
+                                values = string.Join(" ", kvp.Value);
+
+                            }
+                            AsyncEventBus.Publish("serialTimeRX", $"serialTimeRX: {values}");
+                        }
+                        //Console.WriteLine($"{name} = {time}");
+                    }
 
                     lock (bufferLock)
                     {
@@ -191,6 +266,7 @@ namespace StarPixelApp.Models
                     }
 
                     //Debug.WriteLine($"SerialBufferSize: {count}");
+                    isDataAdded = true;
                 }
                 else
                 {
@@ -318,11 +394,90 @@ namespace StarPixelApp.Models
             return pixels;
         }
 
+        //не используется, смотри App SerialProcessing()
         public async Task ProcessDataExternally()
         {
-            ProcessData();
+            //ProcessData();
+            //ProcessRequests();
         }
-  
+
+        public async void ProcessRequests() 
+        {
+            byte[] bufferCopy;
+            int bufferSize;
+            int localProcessedData;
+
+
+            lock (bufferLock)
+            {
+                if (count <= 0) return; // Нет новых данных
+                //Debug.WriteLine("Continue");
+
+                bufferSize = Math.Min(count, SERIAL_FRAME_SIZE);
+
+                bufferCopy = new byte[bufferSize];
+
+                // Копируем только необработанные данные
+                for (int i = 0; i < bufferSize; i++)
+                {
+                    int index = (head + i) % BufferSize;
+                    bufferCopy[i] = buffer[index];
+                }
+
+                //lastSizeBuf = count;
+                localProcessedData = 0; // Сохраняем локальное значение
+            }
+
+            ReadOnlySpan<byte> spanData = bufferCopy;
+
+            isRequestUpdated = false;
+
+            if (!isAtFind)
+            {
+                posAt = GetAtPosEnd(spanData, 0, PXL_AT_STREAM_STR);
+
+                if (posAt > -1)
+                {
+                    isAtFind = true;
+                    commandFound++;
+
+                }
+            }
+
+            if (isAtFind && !isAtParam)
+            {
+                ProcessAtRequest(spanData);
+            }
+
+            if (isAtParam)
+            {
+                //ProcessImageData(spanData);
+                ProcessCommand();
+                isRequestUpdated = true;
+                localProcessedData = posAtEnd; // Все данные обработаны
+            }
+            else if (isCorruptedAtParam)
+            {
+                localProcessedData = posAtEnd;
+            }
+            else if (bufferSize >= SERIAL_FRAME_SIZE)
+            {
+                localProcessedData = bufferSize;
+            }
+
+            if (localProcessedData > 0)
+            {
+                lock (bufferLock)
+                {
+                    head = (head + localProcessedData) % BufferSize; // Обновляем указатель
+                    count -= localProcessedData; // Уменьшаем количество данных
+                                                 //posProcessedData = 0; // Сбрасываем, так как обработали все
+                }
+            }
+
+            ResetStateRequest();
+        }
+
         //чтоб не пересматривать весь массив, ищем только в возможных 3 кадрах
         const int SERIAL_FRAME_SIZE = 3*16*128*3; //18 432 = 3 фрагмента 16 строк 128 столбцов по 3 байта на цвет
         int lastSizeBuf;
@@ -359,7 +514,7 @@ namespace StarPixelApp.Models
 
             if (!isAtFind)
             {
-                posAt = GetAtPosEnd(spanData, 0);
+                posAt = GetAtPosEnd(spanData, 0, PXL_AT_STR);
 
                 if (posAt > -1)
                 {
@@ -400,6 +555,50 @@ namespace StarPixelApp.Models
 
             ResetState();
 
+        }
+
+        int cmdNum = 0;
+        int dataOffset = 0;
+        int dataLength = 0;
+
+        int posCmdNum = -1;
+        int posDataOffset = -1;
+        int posDataLength = -1;
+        private void ProcessAtRequest(ReadOnlySpan<byte> spanData)
+        {
+            if (posCmdNum < 0)
+            {
+                cmdNum = GetAtOffsetParam(spanData, posAt - 1);
+                posCmdNum = GetParamOffset(spanData, posAt - 1);
+            }
+            if (posCmdNum > 0 && posDataOffset < 0)
+            {
+                dataOffset = GetAtOffsetParam(spanData, posCmdNum);
+                posDataOffset = GetParamOffset(spanData, posCmdNum);
+            }
+            if (posDataOffset >= 0 && posDataLength < 0)
+            {
+                dataLength = GetAtOffsetParam(spanData, posDataOffset);
+                posDataLength = GetParamOffset(spanData, posDataOffset);
+            }
+            if (posDataLength > 0)
+            {
+                //int requiredSize = dataLength;
+                //if (spanData.Length > (requiredSize + posDataLength + 1))
+                {
+                    if (spanData[posDataLength + 1] == END_ATn)
+                    {
+                        isAtParam = true;
+
+                    }
+                    else
+                    {
+                        isCorruptedAtParam = true;
+                    }
+                    posAtEnd = posDataLength + 1;
+
+                }
+            }
         }
 
         private void ProcessAtParams(ReadOnlySpan<byte> spanData)
@@ -471,12 +670,60 @@ namespace StarPixelApp.Models
         }
 
 
+        private void ProcessCommand()
+        {
+            requestCmd = cmdNum;
+            requestOffset = dataOffset;
+            requestLength = dataLength;
+
+            
+
+            AsyncEventBus.Publish("serialCmd", $"CMD: {requestCmd}");
+            AsyncEventBus.Publish("serialOffset", $"Offset: {requestOffset}");
+            AsyncEventBus.Publish("serialLength", $"Length: {requestLength}");
+
+            Debug.WriteLine($"cmd: {cmdNum}, dataOffset: {dataOffset}, dataLength: {dataLength}");
+            /*switch (cmdNum)
+            {
+                case 1: //Открыть файл
+                {
+                    
+                    break;
+                }
+
+                case 3: //Прочитать данные
+                {
+
+                    break;
+                }
+
+
+                case 5: //Закрыть файл
+                {
+
+                    break;
+                }
+
+                default:
+                {
+                    break;
+                }
+            }*/
+        }
+
 
         private void ResetState()
         {
             isAtFind = isAtParam = isAtReady = isCorruptedAtParam = false;
             scrWidth = scrHeight = scrColor = 0;
             posAt = posAtWidth = posAtHeight = posAtColor = posAtEnd = scrDataSize = - 1;
+        }
+
+        private void ResetStateRequest()
+        {
+            isAtFind = isAtParam = isAtReady = isCorruptedAtParam = false;
+            cmdNum = dataOffset = dataLength = 0;
+            posAt = posCmdNum = posDataOffset = posDataLength = posAtEnd = -1;
         }
 
         int frameCnt;
