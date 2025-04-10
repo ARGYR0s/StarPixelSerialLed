@@ -146,14 +146,14 @@ namespace StarPixelApp
                 if (_serialReceiver.isRequestUpdated || _serialReceiver.isDataAdded)
                 {
 
-                    //stopwatcSerial.Restart();
+                    stopwatcSerial.Restart();
                     //stopwatcSerial.Start();
                     // Подождать сигнал или timeout (вдруг пришло чуть-чуть данных)
                     //_dataAvailable.WaitOne();
                     //_serialReceiver.isRequestUpdated = false;
                     await SerialProcessing(); //300-600us
-                    //stopwatcSerial.Stop();
-                    //long elapsedMilliseconds = stopwatcSerial.ElapsedMilliseconds;
+                    stopwatcSerial.Stop();
+                    long elapsedMilliseconds = stopwatcSerial.ElapsedMilliseconds;
                     //long microseconds = stopwatcSerial.ElapsedTicks * 1000000 / Stopwatch.Frequency;
                     _serialReceiver.isDataAdded = false;
                 }
@@ -241,12 +241,23 @@ namespace StarPixelApp
                         Buffer.BlockCopy(chunk, 0, fullMessage, data4.Length, chunk.Length);
                         Buffer.BlockCopy(data5, 0, fullMessage, data4.Length + chunk.Length, data5.Length);
 
-                        stopwatcSerial.Restart();
+                            //stopwatcSerial.Restart();
 
-                        _connectionManager.SendDataAsync(fullMessage); //20ms
 
-                        stopwatcSerial.Stop();
-                        long microseconds = stopwatcSerial.ElapsedTicks * 1000000 / Stopwatch.Frequency;
+                            long lastTimeMicros = _connectionManager.LastRXTimeUs;
+                            long nowMicros = Stopwatch.GetTimestamp() * 1_000_000 / Stopwatch.Frequency;
+
+                            long delta = nowMicros - lastTimeMicros;
+
+                            AsyncEventBus.Publish("serialDeltaTime", $"serialDeltaTime: {delta}");
+
+                            await _connectionManager.SendDataAsync(fullMessage); //20ms
+
+
+
+                            
+                        //stopwatcSerial.Stop();
+                        //long microseconds = stopwatcSerial.ElapsedTicks * 1000000 / Stopwatch.Frequency;
                         break;
                     }
 

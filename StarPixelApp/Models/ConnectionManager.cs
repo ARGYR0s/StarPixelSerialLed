@@ -4,6 +4,8 @@ using StarPixelApp.Connections;
 
 public class ConnectionManager
 {
+    public long LastRXTimeUs { get; private set; }
+
     private IDeviceConnection _connection;
     private readonly string _deviceId;
     private CancellationTokenSource _cancellationTokenSource = new();
@@ -210,6 +212,7 @@ public class ConnectionManager
         //SendDataAsync(data);
         //Console.WriteLine($"Получены данные: {data}");
         AsyncEventBus.Publish("deviceDataReceived", data);
+        LastRXTimeUs = _connection.LastRXTimeUs;
     }
 
     public async Task SendDataAsync(byte[] data)

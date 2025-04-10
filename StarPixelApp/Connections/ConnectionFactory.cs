@@ -17,6 +17,7 @@ namespace StarPixelApp.Connections
                 "Virtual" => new VirtualConnection(),
                 "Serial" => new SerialConnection(),
                 "SerialRJCP" => new SerialConnectionRJCP(),
+                "Win32Serial" => new Win32SerialConnection(),
                 _ => throw new NotSupportedException($"Connection type {type} is not supported")
             };
         }

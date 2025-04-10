@@ -213,7 +213,10 @@ namespace StarPixelApp.Models
                             string values = "";
                             foreach (var kvp in timeHistory)
                             {
-                                values = string.Join(" ", kvp.Value);
+                                if (kvp.Key == name)
+                                {
+                                    values = string.Join(" ", kvp.Value);
+                                }
                                 
                             }
                             AsyncEventBus.Publish("serialTimeTX", $"serialTimeTX: {values}");
@@ -224,7 +227,10 @@ namespace StarPixelApp.Models
                             string values = "";
                             foreach (var kvp in timeHistory)
                             {
-                                values = string.Join(" ", kvp.Value);
+                                if (kvp.Key == name)
+                                {
+                                    values = string.Join(" ", kvp.Value);
+                                }
 
                             }
                             AsyncEventBus.Publish("serialTimeRX", $"serialTimeRX: {values}");

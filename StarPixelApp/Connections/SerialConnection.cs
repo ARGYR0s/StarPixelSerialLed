@@ -14,6 +14,8 @@ namespace StarPixelApp.Connections
         public bool IsConnected { get; private set; }
         public event Action<byte[]>? DataReceived;
 
+        public long LastRXTimeUs { get; private set; }
+
         private SerialPort _serialPort;
 
         private CancellationTokenSource? _cts;

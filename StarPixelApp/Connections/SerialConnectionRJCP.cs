@@ -16,6 +16,8 @@ namespace StarPixelApp.Connections
         public bool IsConnected { get; private set; }
         public event Action<byte[]>? DataReceived;
 
+        public long LastRXTimeUs { get; private set; }
+
         private SerialPortStream _serialPort;
 
         private CancellationTokenSource? _cts;
@@ -27,11 +29,13 @@ namespace StarPixelApp.Connections
         {
             _serialPort = new SerialPortStream(portName, 500000, 8, Parity.None, StopBits.One)
             {
-                DtrEnable = true,
-                RtsEnable = true,
+                DtrEnable = false,
+                RtsEnable = false,
                 Handshake = Handshake.None,
                 ReadBufferSize = 124000,
-                WriteBufferSize = 124000
+                WriteBufferSize = 1,
+                ReadTimeout = 1,
+                WriteTimeout = 1
             };
 
 
@@ -83,14 +87,16 @@ namespace StarPixelApp.Connections
             if (!IsConnected || !_serialPort.IsOpen)
                 throw new InvalidOperationException("COM port not connected.");
 
-            var stopwatch = Stopwatch.StartNew();
+            //var stopwatch = Stopwatch.StartNew();
             _serialPort.Write(data, 0, data.Length);
             _serialPort.Flush(); // Убедиться, что всё ушло
-            stopwatch.Stop();
+            //stopwatch.Stop();
 
-            long microseconds = stopwatch.ElapsedTicks * 1_000_000 / Stopwatch.Frequency;
+            //long microseconds = stopwatch.ElapsedTicks * 1_000_000 / Stopwatch.Frequency;
             //Console.WriteLine($"Send took: {microseconds} µs");
         }
+
+        //byte[] nPacket = new byte[1]; 
 
         private async Task ReadLoopAsync(CancellationToken token)
         {
@@ -100,9 +106,16 @@ namespace StarPixelApp.Connections
                 {
                     if (_serialPort.BytesToRead > 0)
                     {
+                        //SendDataAsync(nPacket);
+                        //nPacket[0]++;
+
+                        long timestamp = Stopwatch.GetTimestamp();
                         int bytesToRead = Math.Min(_serialPort.BytesToRead, _buffer.Length - _bufferIndex);
                         int readBytes = await Task.Run(() => _serialPort.Read(_buffer, _bufferIndex, bytesToRead));
                         _bufferIndex += readBytes;
+
+                        // Переводим в микросекунды
+                        LastRXTimeUs = timestamp * 1_000_000 / Stopwatch.Frequency;
 
                         // Проверяем, достигли ли конца пакета (например, символ '\n')
                         //if (Array.IndexOf(_buffer, (byte)'\n', 0, _bufferIndex) >= 0)

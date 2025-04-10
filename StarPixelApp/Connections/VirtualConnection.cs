@@ -11,6 +11,8 @@ namespace StarPixelApp.Connections
         private readonly List<byte> _receivedData = new();
         public bool IsConnected { get; private set; }
         public event Action<byte[]>? DataReceived;
+
+        public long LastRXTimeUs { get; private set; }
         private string _deviceId;
 
         public async Task<bool> ConnectAsync(string deviceId)

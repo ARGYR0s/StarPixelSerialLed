@@ -14,5 +14,7 @@ namespace StarPixelApp.Connections
         
         event Action<byte[]> DataReceived;
         bool IsConnected { get; }
+
+        public long LastRXTimeUs { get; }
     }
 }
