@@ -151,9 +151,10 @@ namespace StarPixelApp
                     // Подождать сигнал или timeout (вдруг пришло чуть-чуть данных)
                     //_dataAvailable.WaitOne();
                     //_serialReceiver.isRequestUpdated = false;
-                    await SerialProcessing(); //26ms
+                    await SerialProcessing(); //300-600us
                     stopwatcSerial.Stop();
-                    long elapsedMilliseconds = stopwatcSerial.ElapsedMilliseconds;
+                    //long elapsedMilliseconds = stopwatcSerial.ElapsedMilliseconds;
+                    long microseconds = stopwatcSerial.ElapsedTicks * 1000000 / Stopwatch.Frequency;
                     _serialReceiver.isDataAdded = false;
                 }
 

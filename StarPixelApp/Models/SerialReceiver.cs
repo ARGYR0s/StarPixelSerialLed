@@ -170,10 +170,13 @@ namespace StarPixelApp.Models
                 queue.Dequeue();
         }
 
+        //Stopwatch stopwatcSerial = new Stopwatch();
+
         public bool isDataAdded = false;
         public byte[] raw = new byte[10];
-        private async void SeriaReceived(object data)
+        private async void SeriaReceived(object data)   //23us
         {
+            //stopwatcSerial.Restart();
             try
             {
                 if (data is byte[] bytes)
@@ -277,6 +280,11 @@ namespace StarPixelApp.Models
             {
                 Debug.WriteLine($"Error: {ex.Message}");
             }
+            //stopwatcSerial.Stop();
+            //long elapsedMilliseconds = stopwatcSerial.ElapsedMilliseconds;
+            //long microseconds = stopwatcSerial.ElapsedTicks * 1000000 / Stopwatch.Frequency;
+            //microseconds = 0;
+            //elapsedMilliseconds = 0;
         }
 
         private int _currentX = 0;
@@ -401,12 +409,13 @@ namespace StarPixelApp.Models
             //ProcessRequests();
         }
 
-        public async void ProcessRequests() 
+        public async void ProcessRequests() //1300us
         {
             byte[] bufferCopy;
             int bufferSize;
             int localProcessedData;
 
+            //stopwatcSerial.Restart();
 
             lock (bufferLock)
             {
@@ -430,6 +439,9 @@ namespace StarPixelApp.Models
 
             ReadOnlySpan<byte> spanData = bufferCopy;
 
+            //1220:
+            //stopwatcSerial.Restart();
+
             isRequestUpdated = false;
 
             if (!isAtFind)
@@ -444,10 +456,16 @@ namespace StarPixelApp.Models
                 }
             }
 
+            //1150us:
+            //stopwatcSerial.Restart();
+
             if (isAtFind && !isAtParam)
             {
                 ProcessAtRequest(spanData);
             }
+
+            //1080us:
+            //stopwatcSerial.Restart();
 
             if (isAtParam)
             {
@@ -465,6 +483,9 @@ namespace StarPixelApp.Models
                 localProcessedData = bufferSize;
             }
 
+            //2us:
+            //stopwatcSerial.Restart();
+
             if (localProcessedData > 0)
             {
                 lock (bufferLock)
@@ -476,6 +497,11 @@ namespace StarPixelApp.Models
             }
 
             ResetStateRequest();
+
+            //stopwatcSerial.Stop();
+            //long elapsedMilliseconds = stopwatcSerial.ElapsedMilliseconds;
+            //long microseconds = stopwatcSerial.ElapsedTicks * 1000000 / Stopwatch.Frequency;
+            //microseconds = 0;
         }
 
         //чтоб не пересматривать весь массив, ищем только в возможных 3 кадрах
@@ -670,8 +696,10 @@ namespace StarPixelApp.Models
         }
 
 
-        private void ProcessCommand()
+        private void ProcessCommand() 
         {
+            //stopwatcSerial.Restart();
+
             requestCmd = cmdNum;
             requestOffset = dataOffset;
             requestLength = dataLength;
@@ -681,34 +709,15 @@ namespace StarPixelApp.Models
             AsyncEventBus.Publish("serialCmd", $"CMD: {requestCmd}");
             AsyncEventBus.Publish("serialOffset", $"Offset: {requestOffset}");
             AsyncEventBus.Publish("serialLength", $"Length: {requestLength}");
-
-            Debug.WriteLine($"cmd: {cmdNum}, dataOffset: {dataOffset}, dataLength: {dataLength}");
-            /*switch (cmdNum)
-            {
-                case 1: //Открыть файл
-                {
-                    
-                    break;
-                }
-
-                case 3: //Прочитать данные
-                {
-
-                    break;
-                }
-
-
-                case 5: //Закрыть файл
-                {
-
-                    break;
-                }
-
-                default:
-                {
-                    break;
-                }
-            }*/
+            /*
+            Debug.WriteLine($"cmd: {cmdNum}, dataOffset: {dataOffset}, dataLength: {dataLength}"); //1000us
+            */
+            /*
+            stopwatcSerial.Stop();
+            //long elapsedMilliseconds = stopwatcSerial.ElapsedMilliseconds;
+            long microseconds = stopwatcSerial.ElapsedTicks * 1000000 / Stopwatch.Frequency;
+            microseconds = 0;
+            */
         }
 
 
