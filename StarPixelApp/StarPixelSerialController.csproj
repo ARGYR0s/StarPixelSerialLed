@@ -68,13 +68,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.50" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Plugin.BLE" Version="3.1.0" />
-		<PackageReference Include="runtime.native.System.IO.Ports" Version="9.0.3" />
+		<PackageReference Include="RJCP.SerialPortStream" Version="3.0.1" />
+		<PackageReference Include="runtime.native.System.IO.Ports" Version="9.0.4" />
 		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.116.1" />
-		<PackageReference Include="System.IO.Ports" Version="9.0.3" />
+		<PackageReference Include="System.IO.Ports" Version="9.0.4" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">

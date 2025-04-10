@@ -2,19 +2,21 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO.Ports;
+//using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RJCP.IO.Ports;
 
 namespace StarPixelApp.Connections
 {
-    public class SerialConnection : IDeviceConnection, IDeviceDiscovery
+
+    public class SerialConnectionRJCP : IDeviceConnection, IDeviceDiscovery
     {
         public bool IsConnected { get; private set; }
         public event Action<byte[]>? DataReceived;
 
-        private SerialPort _serialPort;
+        private SerialPortStream _serialPort;
 
         private CancellationTokenSource? _cts;
 
@@ -23,24 +25,31 @@ namespace StarPixelApp.Connections
 
         public async Task<bool> ConnectAsync(string portName)
         {
-            _serialPort = new SerialPort(portName, 500000, Parity.None, 8, StopBits.One)
+            _serialPort = new SerialPortStream(portName, 500000, 8, Parity.None, StopBits.One)
             {
-                ReadBufferSize = 124000, // Увеличение буфера чтения
-                ReceivedBytesThreshold = 1, // Событие вызывается даже при 1 байте
-                Handshake = Handshake.None,
                 DtrEnable = true,
-                RtsEnable = true
+                RtsEnable = true,
+                Handshake = Handshake.None,
+                ReadBufferSize = 124000,
+                WriteBufferSize = 124000
             };
 
 
-            _serialPort.Open();
-            IsConnected = true;
+            try
+            {
+                _serialPort.Open();
+                IsConnected = true;
 
-            // Запускаем асинхронное чтение
-            _cts = new CancellationTokenSource();
-            _ = Task.Run(() => ReadLoopAsync(_cts.Token));
+                _cts = new CancellationTokenSource();
+                _ = Task.Run(() => ReadLoopAsync(_cts.Token)); // запустить чтение
 
-            return IsConnected;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error opening serial port: {ex.Message}");
+                return false;
+            }
         }
 
         public async Task DisconnectAsync()
@@ -56,7 +65,7 @@ namespace StarPixelApp.Connections
 
         // Создаем объект Stopwatch для измерения времени рендера
         Stopwatch stopwatcSerial = new Stopwatch();
-
+        /*
         public async Task SendDataAsync(byte[] data)
         {
             if (!IsConnected) throw new InvalidOperationException("COM port not connected.");
@@ -68,12 +77,26 @@ namespace StarPixelApp.Connections
             microseconds = 0;
             //Console.WriteLine($"Sending via COM port: {BitConverter.ToString(data)}");
         }
+        */
+        public async Task SendDataAsync(byte[] data)
+        {
+            if (!IsConnected || !_serialPort.IsOpen)
+                throw new InvalidOperationException("COM port not connected.");
+
+            var stopwatch = Stopwatch.StartNew();
+            _serialPort.Write(data, 0, data.Length);
+            _serialPort.Flush(); // Убедиться, что всё ушло
+            stopwatch.Stop();
+
+            long microseconds = stopwatch.ElapsedTicks * 1_000_000 / Stopwatch.Frequency;
+            //Console.WriteLine($"Send took: {microseconds} µs");
+        }
 
         private async Task ReadLoopAsync(CancellationToken token)
         {
             try
             {
-                while (!token.IsCancellationRequested)
+                while (!token.IsCancellationRequested && _serialPort.IsOpen)
                 {
                     if (_serialPort.BytesToRead > 0)
                     {
@@ -131,7 +154,7 @@ namespace StarPixelApp.Connections
         public async Task<List<ConnectionDeviceInfo>> DiscoverDevicesAsync()
         {
             var devices = new List<ConnectionDeviceInfo>();
-            string[] portNames = SerialPort.GetPortNames();
+            string[] portNames = System.IO.Ports.SerialPort.GetPortNames();
 
             foreach (var portName in portNames)
             {

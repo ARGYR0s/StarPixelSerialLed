@@ -16,6 +16,7 @@ namespace StarPixelApp.Connections
                 "USB" => new UsbConnection(),
                 "Virtual" => new VirtualConnection(),
                 "Serial" => new SerialConnection(),
+                "SerialRJCP" => new SerialConnectionRJCP(),
                 _ => throw new NotSupportedException($"Connection type {type} is not supported")
             };
         }

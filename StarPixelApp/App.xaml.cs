@@ -146,15 +146,15 @@ namespace StarPixelApp
                 if (_serialReceiver.isRequestUpdated || _serialReceiver.isDataAdded)
                 {
 
-                    stopwatcSerial.Restart();
+                    //stopwatcSerial.Restart();
                     //stopwatcSerial.Start();
                     // Подождать сигнал или timeout (вдруг пришло чуть-чуть данных)
                     //_dataAvailable.WaitOne();
                     //_serialReceiver.isRequestUpdated = false;
                     await SerialProcessing(); //300-600us
-                    stopwatcSerial.Stop();
+                    //stopwatcSerial.Stop();
                     //long elapsedMilliseconds = stopwatcSerial.ElapsedMilliseconds;
-                    long microseconds = stopwatcSerial.ElapsedTicks * 1000000 / Stopwatch.Frequency;
+                    //long microseconds = stopwatcSerial.ElapsedTicks * 1000000 / Stopwatch.Frequency;
                     _serialReceiver.isDataAdded = false;
                 }
 
@@ -218,23 +218,35 @@ namespace StarPixelApp
                         int offset = _serialReceiver.requestOffset;
                         int length = _serialReceiver.requestLength;
 
-                        byte[] chunk = await _reader.GetDataAsync(offset: offset, length: length);
+                        byte[] chunk = await _reader.GetDataAsync(offset: offset, length: length); //30-50us
+
+                            
+                        //stopwatcSerial.Restart();
 
                         int actualLength = chunk.Length;
-
                         // Формируем строку команды с указанием offset и length
-                        string command4 = $"+PXLS=4,{offset.ToString()},{actualLength.ToString()}\n";
+                        string command4 = $"+PXLS=4,{offset},{actualLength}\n";
                         byte[] data4 = Encoding.UTF8.GetBytes(command4);
                         string newLine = "\n";
                         byte[] data5 = Encoding.UTF8.GetBytes(newLine);
 
-                            // Объединяем команду и chunk
+
+
+
+                        //stopwatcSerial.Start();
+
+                        // Объединяем команду и chunk
                         byte[] fullMessage = new byte[data4.Length + chunk.Length + 1];
                         Buffer.BlockCopy(data4, 0, fullMessage, 0, data4.Length);
                         Buffer.BlockCopy(chunk, 0, fullMessage, data4.Length, chunk.Length);
                         Buffer.BlockCopy(data5, 0, fullMessage, data4.Length + chunk.Length, data5.Length);
 
-                        _connectionManager.SendDataAsync(fullMessage);
+                        stopwatcSerial.Restart();
+
+                        _connectionManager.SendDataAsync(fullMessage); //20ms
+
+                        stopwatcSerial.Stop();
+                        long microseconds = stopwatcSerial.ElapsedTicks * 1000000 / Stopwatch.Frequency;
                         break;
                     }
 
